@@ -26,7 +26,7 @@ message(STATUS "QT_VERSION: " ${QT_VERSION})
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
-        mainwindow.h
+        CountDownWidget.cpp
         # mainwindow.ui
 )
 

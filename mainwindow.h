@@ -9,6 +9,9 @@
 #include <QTimer>
 
 #include <stdlib.h>
+#include <iostream>
+
+#include "CountDownWidget.h"
 
 class MainWindow : public QWidget {
     Q_OBJECT
@@ -17,14 +20,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
 
 private slots:
-
+    
 private:
     QTimer          *maintimer;
-    QLabel          *lblTimeRemaining;
     QPushButton     *btnStartTimer;
+    CountdownWidget *countdown;
 
     void createInterface();
-    void startTimer();
+
 };
 
 #endif // MAINWINDOW_H
