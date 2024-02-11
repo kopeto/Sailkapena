@@ -27,6 +27,7 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         CountDownWidget.cpp
+        ClassificationWindow.cpp
 )
 
 qt_add_executable(HitzGurutzatuak

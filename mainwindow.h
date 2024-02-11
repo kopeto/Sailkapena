@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include <QPointer>
+
 #include "CountDownWidget.h"
 
 class MainWindow : public QWidget {
@@ -22,10 +24,7 @@ public:
 private slots:
     
 private:
-    CountdownWidget *countdown;
-
-    void createInterface();
-
+    QPointer<QVBoxLayout> mainLayout; // QVBoxLayout
 };
 
 #endif // MAINWINDOW_H

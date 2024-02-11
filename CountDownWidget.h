@@ -1,3 +1,6 @@
+#ifndef COUNTDOWNWIDGET_H
+#define COUNTDOWNWIDGET_H
+
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -28,10 +31,12 @@ private:
    QPointer<QPushButton>    setInitialValue_BTN;   //  QPushButton *setInitialValue_BTN;
    QPointer<QLineEdit>      input_field_;          //  QLineEdit *input_field_;
    QPointer<QTimer>         timer_;                //  QTimer *timer_;
-   QPointer<QLabel>         label_;                //  QLabel *label_;
+   QPointer<QLabel>         timer_Label;                //  QLabel *label_;
 
    QPointer<QVBoxLayout> main_layout;
    QPointer<QHBoxLayout> layout_h;
 
    QPointer<QDebug> debug;                         //  QDebug *debug;
 };
+
+#endif // COUNTDOWNWIDGET_H
