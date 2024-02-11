@@ -22,8 +22,6 @@ public:
 private slots:
     
 private:
-    QTimer          *maintimer;
-    QPushButton     *btnStartTimer;
     CountdownWidget *countdown;
 
     void createInterface();

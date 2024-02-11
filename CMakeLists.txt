@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(QT6CMAKE_PATH "/opt/Qt/6.6.1/gcc_64/lib/cmake/")
@@ -27,7 +27,6 @@ set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
         CountDownWidget.cpp
-        # mainwindow.ui
 )
 
 qt_add_executable(HitzGurutzatuak
