@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
 
     qInfo() << "Application name: " << a.applicationName();
     qInfo() << "Application version: " << a.applicationVersion();
-
     qInfo() << "Qt version: " << QT_VERSION_STR;
 
     ClassificationWindow cw;

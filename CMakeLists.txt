@@ -23,12 +23,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 message(STATUS "QT_VERSION: " ${QT_VERSION})
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        CountDownWidget.cpp
-        ClassificationWindow.cpp
-)
+FILE(GLOB PROJECT_SOURCES 
+    src/*.cpp
+) 
 
 qt_add_executable(HitzGurutzatuak
     MANUAL_FINALIZATION
