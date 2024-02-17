@@ -11,12 +11,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(QT6CMAKE_PATH "/opt/Qt/6.6.1/gcc_64/lib/cmake/")
+# set(QT6CMAKE_PATH "/opt/Qt/6.6.1/gcc_64/lib/cmake/")
 
-set(CMAKE_PREFIX_PATH
-    ${QT6CMAKE_PATH}"Qt6"
-    ${QT6CMAKE_PATH}"Qt6CoreTools"
-    ${QT6CMAKE_PATH}"Qt6GuiTools")
+# set(CMAKE_PREFIX_PATH
+#     ${QT6CMAKE_PATH}"Qt6"
+#     ${QT6CMAKE_PATH}"Qt6CoreTools"
+#     ${QT6CMAKE_PATH}"Qt6GuiTools")
 
 find_package(QT NAMES Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
