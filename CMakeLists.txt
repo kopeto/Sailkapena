@@ -25,6 +25,7 @@ message(STATUS "QT_VERSION: " ${QT_VERSION})
 
 FILE(GLOB PROJECT_SOURCES 
     src/*.cpp
+    src/*.h
 ) 
 
 qt_add_executable(HitzGurutzatuak

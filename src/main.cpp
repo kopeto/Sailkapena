@@ -1,6 +1,8 @@
 #include <QApplication>
 #include "mainwindow.h"
-#include "ClassificationWindow.h"
+
+#include "Player.h"
+#include "Txapelketa.h"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
@@ -11,10 +13,8 @@ int main(int argc, char *argv[]) {
     qInfo() << "Application version: " << a.applicationVersion();
     qInfo() << "Qt version: " << QT_VERSION_STR;
 
-    ClassificationWindow cw;
     MainWindow w;
     w.show();
-    cw.show();
 
     return a.exec();
 }

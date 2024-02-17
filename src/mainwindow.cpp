@@ -1,8 +1,13 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QWidget(parent)
+MainWindow::MainWindow()
+    : QMainWindow()
 {
-    mainLayout = new QVBoxLayout(this);
-    setLayout(mainLayout);
+    mainLayout  = new QVBoxLayout(this);
+    txapelketa  = new Txapelketa(this);
+    
+    /* Layouts */
+    mainLayout->addWidget(txapelketa);
+
+    setCentralWidget(txapelketa);
 }

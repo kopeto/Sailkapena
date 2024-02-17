@@ -2,7 +2,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -12,19 +12,22 @@
 #include <iostream>
 
 #include <QPointer>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QHBoxLayout>
 
-#include "CountDownWidget.h"
+#include "Txapelketa.h"
+#include "Taula.h"
 
-class MainWindow : public QWidget {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
-
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow();
+    QPointer<Txapelketa>    txapelketa;
 
-private slots:
-    
 private:
-    QPointer<QVBoxLayout> mainLayout; // QVBoxLayout
+    QPointer<QVBoxLayout>   mainLayout;
 };
 
 #endif // MAINWINDOW_H

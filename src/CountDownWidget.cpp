@@ -8,8 +8,6 @@ static void setLabel(QPointer<QLabel> label, int seconds)
     label->setText(QString("%1%2:%3").arg((hours > 0 ? QString("%1:").arg(hours) : "")).arg(mins, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0')));
 }
 
-
-
 static void setLabelBackground(QPointer<QLabel> label, QColor color)
 {
     static QPalette pal = label->palette();
@@ -28,38 +26,36 @@ static void setBlankBackground(QPointer<QLabel> label)
     setLabelBackground(label, QColor(Qt::transparent));
 }
 
-CountdownWidget::CountdownWidget(int initialValue) : QWidget()
+CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
 {
-    countdown_seconds_ = initialValue;
-    remaining_seconds_ = initialValue;
-
     timer_ = new QTimer(this);
 
     /* Inputs */
     input_field_ = new QLineEdit("");
     input_field_->setMaximumWidth(100);
     input_field_->setPlaceholderText("");
-
     /* Buttons */
     start_BTN = new QPushButton("Hasi");
-    setInitialValue_BTN = new QPushButton("Set Initial Timer value");
+    start_BTN->setMaximumWidth(150);
+    setInitialValue_BTN = new QPushButton("Denbora berritu");
+    setInitialValue_BTN->setMaximumWidth(150);
 
     /* Labels */
     timer_Label = new QLabel();
     timer_Label->setFont(QFont("Arial", 200));
-    timer_Label->setAlignment(Qt::AlignCenter);
     timer_Label->setTextFormat(Qt::RichText); 
-    setLabel(timer_Label, initialValue);
-
+    timer_Label->setAlignment(Qt::AlignCenter);
+    setLabel(timer_Label, 0);
 
     /* Layouts */
     main_layout = new QVBoxLayout(this);
     layout_h = new QHBoxLayout(this);
+    layout_h->setAlignment(Qt::AlignLeft);
     main_layout->addWidget(timer_Label);
     main_layout->addLayout(layout_h);
     layout_h->addWidget(input_field_);
     layout_h->addWidget(setInitialValue_BTN);
-    main_layout->addWidget(start_BTN);
+    layout_h->addWidget(start_BTN);
 
     /* Connections */
     connect(timer_, &QTimer::timeout, this, &CountdownWidget::updateCountdown);
@@ -111,4 +107,9 @@ void CountdownWidget::startCountdown()
     remaining_seconds_ = countdown_seconds_;
     updateCountdown();
     timer_->start(1000); // Initial delay of 1 second
+}
+
+int CountdownWidget::getElapsedTime()
+{
+    return countdown_seconds_ - remaining_seconds_;
 }
