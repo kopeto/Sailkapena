@@ -1,10 +1,15 @@
 #include "Player.h"
 
 
-Player::Player(const QString& name) : name(name), id(Player::nextID()) {}
+Player::Player(const QString& name) : name(name), id(Player::nextID()) 
+{
+    results.resize(3);
+}
 
-Player::Player(const char * name) : id(Player::nextID()) {
+Player::Player(const char * name) : id(Player::nextID()) 
+{
     this->name = QString(name);
+    results.resize(3);
 }
 
 int Player::nextID()
@@ -21,4 +26,9 @@ QString Player::getName() const
 int Player::getId() const
 {
     return id;
+}
+
+void Player::setResult(int game, Emaitza_t result)
+{
+    results.at(game) = result;
 }

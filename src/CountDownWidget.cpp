@@ -42,7 +42,7 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
 
     /* Labels */
     timer_Label = new QLabel();
-    timer_Label->setFont(QFont("Arial", 200));
+    timer_Label->setFont(QFont("Arial", 400));
     timer_Label->setTextFormat(Qt::RichText); 
     timer_Label->setAlignment(Qt::AlignCenter);
     setLabel(timer_Label, 0);
@@ -90,7 +90,7 @@ void CountdownWidget::updateCountdown()
         timer_->stop();
 
         remaining_seconds_ = countdown_seconds_;
-        timer_Label->setText("Denbora bukatu da.");
+        timer_Label->setText("Akabo da.");
     }
     else
     {

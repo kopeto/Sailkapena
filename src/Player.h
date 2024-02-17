@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QPushButton>
 
 #include <vector>
 #include <utility>
@@ -35,9 +36,9 @@ public:
     static int nextID();
 
     /**
-     * Add a result
+     * Set a result
     */
-    void addResult(Emaitza_t result);
+    void setResult(int game, Emaitza_t result);
 
     /**
      * Get player name
@@ -52,6 +53,7 @@ public:
     QString name;
     int id;
     std::vector<Emaitza_t> results{};
+    QPushButton *setTime_BTN{nullptr};
 };
 
 #endif // PLAYER_H

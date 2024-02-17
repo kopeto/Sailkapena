@@ -6,9 +6,33 @@ Txapelketa::Txapelketa(QWidget *parent)
     taula = new Taula(this);
     timer = new CountdownWidget(this);
 
+    /* Radio buttons */
+    GameSelectorGroup = new QButtonGroup();
+    GameSelectorLayout = new QHBoxLayout();
+    GameSelectorLayout->setAlignment(Qt::AlignLeft);
+    game_1 = new QRadioButton("Lehen Jokoa");
+    game_2 = new QRadioButton("Bigarren Jokoa");
+    game_final = new QRadioButton("Finala");
+
+    game_1->setChecked(true);
+    game_2->setChecked(false);
+    game_final->setChecked(false);
+
+    GameSelectorLayout->addWidget(game_1);
+    GameSelectorLayout->addWidget(game_2);
+    GameSelectorLayout->addWidget(game_final);
+
+    GameSelectorGroup->addButton(game_1);
+    GameSelectorGroup->addButton(game_2);
+    GameSelectorGroup->addButton(game_final);
+
+    updateTable_BTN = new QPushButton("Taula berritu");
+    GameSelectorLayout->addWidget(updateTable_BTN);
+
     mainLayout = new QVBoxLayout(this);
 
     mainLayout->addWidget(timer);
+    mainLayout->addLayout(GameSelectorLayout);
     mainLayout->addWidget(taula);
 
     layout_h = new QHBoxLayout(this);
@@ -25,25 +49,32 @@ Txapelketa::Txapelketa(QWidget *parent)
     setLayout(mainLayout);
 
     /* Connections */
+    connect(updateTable_BTN, &QPushButton::clicked, this, &Txapelketa::updateTable);
     connect(addPlayer_BTN, &QPushButton::clicked, this, &Txapelketa::addPlayer);
 }
 
+void Txapelketa::deletePlayer(const QString& name)
+{
+
+}
 
 void Txapelketa::addPlayer()
 {
-    if (input_player_name->text().isEmpty())
+    QString name = input_player_name->text();
+    if (name.isEmpty() || taula->checkPlayerExists(name))
     {
         return;
     }
 
     Player p(input_player_name->text());
+    QPushButton *setTime_BTN = new QPushButton("Denbora berritu", this);
+    p.setTime_BTN = setTime_BTN;
     Players.push_back(p);
     taula->addPlayer(p);
 
-    QPushButton *btn_edit = new QPushButton("Set Time", this);
-    taula->setCellWidget(taula->rowCount() - 1, 0, btn_edit);
+    taula->setCellWidget(taula->rowCount() - 1, 0, setTime_BTN);
 
-    connect(btn_edit, &QPushButton::clicked, this, std::bind(&Txapelketa::setTime, this, p.getName()));
+    connect(setTime_BTN, &QPushButton::clicked, this, std::bind(&Txapelketa::setTime, this, p.getName()));
 }
 
 void Txapelketa::printPlayers()
@@ -58,23 +89,123 @@ void Txapelketa::printPlayers()
         }
     }
 }
-
-void Txapelketa::setTime(const QString& player_name)
+void Txapelketa::setTime(const QString &name)
 {
+    /* Update results in player */
+    /* Game 0 */
     int elapsedTime = timer->getElapsedTime();
+    int errors = 0;
 
-    qDebug() << "Elapsed : " << elapsedTime << " seconds for " << player_name;
+    int timeColumn{0};
+    int errorsColumn{0};
+    int game{0};
 
-    for(auto row{0}; row < taula->rowCount(); ++row)
+    std::tie(timeColumn, errorsColumn) = getCurrentGameColumns();
+
+    for (auto row{0}; row < taula->rowCount(); ++row)
     {
-        if (taula->item(row, PLAYER_NAME_COLUMN)->text() == player_name)
+        if (taula->item(row, PLAYER_NAME_COLUMN)->text() == name)
         {
-            taula->setItem(row, 3, new QTableWidgetItem(QString("%1").arg(elapsedTime)));
+            QTableWidgetItem *it;
+
+            /* Time */
+            if (!taula->item(row, timeColumn))
+            {
+                it = new QTableWidgetItem();
+                it->setData(Qt::EditRole, elapsedTime);
+                taula->setItem(row, timeColumn, it);
+            }
+            else
+            {
+                it = taula->item(row, timeColumn);
+                it->setData(Qt::EditRole, elapsedTime);
+            }
+
+            /* Errors */
+            if (!taula->item(row, errorsColumn))
+            {
+                errors = 0;
+                it = new QTableWidgetItem();
+                it->setData(Qt::EditRole, errors);
+                taula->setItem(row, errorsColumn, it);
+            }
+            else
+            {
+                errors = taula->item(row, errorsColumn)->text().toInt();
+            }
         }
     }
 }
 
+// void Txapelketa::setTime(const Player &player)
+// {
+//     setTime(player.getName());
+// }
+
 void Txapelketa::updateTable()
 {
-    ;
+    updateInternals_();
+
+    /* Sort */
+    taula->sortByColumn(TOTAL_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
+    taula->sortByColumn(TOTAL_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
+
+    updateReals_();
+}
+
+void Txapelketa::updateInternals_()
+{
+    for (auto row{0}; row < taula->rowCount(); ++row)
+    {
+        int total_errors = taula->getRowTotalErrorsInternal(row);
+        int total_time = taula->getRowTotalTimeInternal(row);
+
+        QTableWidgetItem *totErrItem = new QTableWidgetItem();
+        totErrItem->setData(Qt::EditRole, total_errors); // Accepts a QVariant
+        taula->setItem(row, TOTAL_ERRORS_COLUMN, totErrItem);
+
+        QTableWidgetItem *totTimeItem = new QTableWidgetItem();
+        totTimeItem->setData(Qt::EditRole, total_time); // Accepts a QVariant
+        taula->setItem(row, TOTAL_TIME_COLUMN, totTimeItem);
+    }
+}
+
+void Txapelketa::updateReals_()
+{
+    for (auto row{0}; row < taula->rowCount(); ++row)
+    {
+        int total_errors = taula->getRowTotalErrorsReal(row);
+        int total_time = taula->getRowTotalTimeReal(row);
+
+        QTableWidgetItem *totErrItem = new QTableWidgetItem();
+        totErrItem->setData(Qt::EditRole, total_errors); // Accepts a QVariant
+        taula->setItem(row, TOTAL_ERRORS_COLUMN, totErrItem);
+
+        QTableWidgetItem *totTimeItem = new QTableWidgetItem();
+        totTimeItem->setData(Qt::EditRole, total_time); // Accepts a QVariant
+        taula->setItem(row, TOTAL_TIME_COLUMN, totTimeItem);
+    }
+}
+
+std::pair<int, int> Txapelketa::getCurrentGameColumns()
+{
+    std::pair<int, int> cols;
+
+    if (game_1->isChecked())
+    {
+        cols.first = GAME1_TIME_COLUMN;
+        cols.second = GAME1_ERRORS_COLUMN;
+    }
+    if (game_2->isChecked())
+    {
+        cols.first = GAME2_TIME_COLUMN;
+        cols.second = GAME2_ERRORS_COLUMN;
+    }
+    if (game_final->isChecked())
+    {
+        cols.first = GAME3_TIME_COLUMN;
+        cols.second = GAME3_ERRORS_COLUMN;
+    }
+
+    return cols;
 }

@@ -18,7 +18,7 @@ set(CMAKE_PREFIX_PATH
     ${QT6CMAKE_PATH}"Qt6CoreTools"
     ${QT6CMAKE_PATH}"Qt6GuiTools")
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
+find_package(QT NAMES Qt6 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 message(STATUS "QT_VERSION: " ${QT_VERSION})
