@@ -1,10 +1,31 @@
 #include "Txapelketa.h"
 
+static QString int2Time(int time)
+{
+    int hours = time / 3600;
+    int minutes = (time / 60) % 60;
+    int seconds = time % 60;
+
+    return QString("%1:%2:%3").arg(hours, 2, 10, QChar('0')).arg(minutes, 2, 10, QChar('0')).arg(seconds, 2, 10, QChar('0'));
+}
+
+static int time2Int(QString str)
+{
+    return str.mid(0, 2).toInt() * 3600 + str.mid(3, 2).toInt() * 60 + str.mid(6, 2).toInt();
+}
+
 Txapelketa::Txapelketa(QWidget *parent)
     : QWidget{parent}
 {
     taula = new Taula(this);
     timer = new CountdownWidget(this);
+
+    /* Public window */
+    // publicwindow = new PublicWindow();
+    // publicwindow->show();
+
+    // Connect timer and public window
+    // timer->public_label = publicwindow->timerlabel;
 
     /* Radio buttons */
     GameSelectorGroup = new QButtonGroup();
@@ -31,20 +52,33 @@ Txapelketa::Txapelketa(QWidget *parent)
 
     mainLayout = new QVBoxLayout(this);
 
-    mainLayout->addWidget(timer);
-    mainLayout->addLayout(GameSelectorLayout);
-    mainLayout->addWidget(taula);
-
-    layout_h = new QHBoxLayout(this);
-
     /* Buttons */
     addPlayer_BTN = new QPushButton("Jokalari berria");
     input_player_name = new QLineEdit();
 
+    // /* image */
+    //     // Creamos un QLabel para mostrar la imagen
+    // image_label = new QLabel(this);
+    // image_pixmap = new QPixmap("../img/jokoa1.jpeg");
+    // if (!image_pixmap->isNull()) {
+    //     image_label->setPixmap(*image_pixmap);
+    //     image_label->resize(image_pixmap->size());
+    // }
+
     /* Layouts */
-    mainLayout->addLayout(layout_h);
+    layout_h = new QHBoxLayout(this);
     layout_h->addWidget(addPlayer_BTN);
     layout_h->addWidget(input_player_name);
+
+    // layout_table = new QHBoxLayout(this);
+    // layout_table->addWidget(taula);
+    // layout_table->addWidget(image_label);
+
+
+    mainLayout->addWidget(timer);
+    mainLayout->addLayout(GameSelectorLayout);
+    mainLayout->addLayout(layout_h);
+    mainLayout->addWidget(taula);
 
     setLayout(mainLayout);
 
@@ -53,9 +87,8 @@ Txapelketa::Txapelketa(QWidget *parent)
     connect(addPlayer_BTN, &QPushButton::clicked, this, &Txapelketa::addPlayer);
 }
 
-void Txapelketa::deletePlayer(const QString& name)
+void Txapelketa::deletePlayer(const QString &name)
 {
-
 }
 
 void Txapelketa::addPlayer()
@@ -65,13 +98,16 @@ void Txapelketa::addPlayer()
     {
         return;
     }
+    addPlayerNamed(name);
+}
 
-    Player p(input_player_name->text());
+void Txapelketa::addPlayerNamed(const QString& name)
+{
+    Player p(name);
     QPushButton *setTime_BTN = new QPushButton("Denbora berritu", this);
     p.setTime_BTN = setTime_BTN;
     Players.push_back(p);
     taula->addPlayer(p);
-
     taula->setCellWidget(taula->rowCount() - 1, 0, setTime_BTN);
 
     connect(setTime_BTN, &QPushButton::clicked, this, std::bind(&Txapelketa::setTime, this, p.getName()));
@@ -102,6 +138,8 @@ void Txapelketa::setTime(const QString &name)
 
     std::tie(timeColumn, errorsColumn) = getCurrentGameColumns();
 
+    qDebug() << "Looking for " << name ;
+
     for (auto row{0}; row < taula->rowCount(); ++row)
     {
         if (taula->item(row, PLAYER_NAME_COLUMN)->text() == name)
@@ -111,14 +149,19 @@ void Txapelketa::setTime(const QString &name)
             /* Time */
             if (!taula->item(row, timeColumn))
             {
-                it = new QTableWidgetItem();
-                it->setData(Qt::EditRole, elapsedTime);
+                QString showData = int2Time(elapsedTime); 
+                it = new QTableWidgetItem(showData);
+                it->setData(Qt::DisplayRole, showData);
+                it->setData(Qt::UserRole, elapsedTime);
                 taula->setItem(row, timeColumn, it);
             }
             else
             {
+                QString showData = int2Time(elapsedTime); 
                 it = taula->item(row, timeColumn);
-                it->setData(Qt::EditRole, elapsedTime);
+                it->setData(Qt::DisplayRole, showData);
+                it->setData(Qt::UserRole, elapsedTime);
+                taula->setItem(row, timeColumn, it);
             }
 
             /* Errors */
@@ -136,11 +179,6 @@ void Txapelketa::setTime(const QString &name)
         }
     }
 }
-
-// void Txapelketa::setTime(const Player &player)
-// {
-//     setTime(player.getName());
-// }
 
 void Txapelketa::updateTable()
 {
@@ -177,12 +215,14 @@ void Txapelketa::updateReals_()
         int total_errors = taula->getRowTotalErrorsReal(row);
         int total_time = taula->getRowTotalTimeReal(row);
 
-        QTableWidgetItem *totErrItem = new QTableWidgetItem();
-        totErrItem->setData(Qt::EditRole, total_errors); // Accepts a QVariant
+        QTableWidgetItem *totErrItem = new QTableWidgetItem(total_errors);
+        totErrItem->setData(Qt::EditRole, total_errors);
         taula->setItem(row, TOTAL_ERRORS_COLUMN, totErrItem);
 
-        QTableWidgetItem *totTimeItem = new QTableWidgetItem();
-        totTimeItem->setData(Qt::EditRole, total_time); // Accepts a QVariant
+        QString total_time_show_data = int2Time(total_time);
+        QTableWidgetItem *totTimeItem = new QTableWidgetItem(total_time_show_data);
+        totTimeItem->setData(Qt::DisplayRole, total_time_show_data); // Accepts a QVariant
+        totTimeItem->setData(Qt::UserRole, total_time);
         taula->setItem(row, TOTAL_TIME_COLUMN, totTimeItem);
     }
 }

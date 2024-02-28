@@ -32,7 +32,7 @@ public:
     QPointer<Txapelketa> txapelketa;
 
 private:
-    QPointer<QVBoxLayout> mainLayout;
+    // QPointer<QVBoxLayout> mainLayout;
 
 private slots:
     inline void exit()
@@ -50,12 +50,12 @@ private slots:
 
     inline void taulaGorde()
     {
-        txapelketa->taula->saveToFile("taula.csv");
+        txapelketa->saveToFile();
     }
 
     inline void taulaIreki()
     {
-        txapelketa->taula->loadFromFile("taula.csv");
+        txapelketa->loadFromFile();
     }
 };
 

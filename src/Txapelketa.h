@@ -8,11 +8,15 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 
+
+#include <QWindow>
+
 #include <vector>
 
 #include "Player.h"
 #include "Taula.h"
 #include "CountDownWidget.h"
+#include "PublicWindow.h"
 
 class Txapelketa : public QWidget
 {
@@ -28,16 +32,26 @@ public:
 
     /* Interface components */
     /* game selector */
-    QPointer<QButtonGroup>  GameSelectorGroup;
-    QPointer<QHBoxLayout>   GameSelectorLayout;
-    QPointer<QRadioButton>  game_1;
-    QPointer<QRadioButton>  game_2;
-    QPointer<QRadioButton>  game_final;
+    QPointer<QButtonGroup> GameSelectorGroup;
+    QPointer<QHBoxLayout> GameSelectorLayout;
+    QPointer<QRadioButton> game_1;
+    QPointer<QRadioButton> game_2;
+    QPointer<QRadioButton> game_final;
 
     QPointer<QPushButton> updateTable_BTN;
     QPointer<QPushButton> addPlayer_BTN; //  QPushButton *setInitialValue_BTN;
-    QPointer<QLineEdit>     input_player_name;
+    QPointer<QLineEdit> input_player_name;
     QPointer<QHBoxLayout> layout_h;
+    QPointer<QHBoxLayout> layout_table;
+
+    // // solution image
+    // QPointer<QLabel> image_label;
+    // QPixmap *image_pixmap;
+
+    /**
+     * Public window
+     */
+    // QPointer<PublicWindow> publicwindow;
 
     std::vector<Player> Players;
 
@@ -46,10 +60,15 @@ public:
     void updateTable();
     std::pair<int, int> getCurrentGameColumns();
 
+    /* IO read write functions */
+    bool saveToFile();
+    bool loadFromFile();
+
 public slots:
-    void deletePlayer(const QString& name);
+    void deletePlayer(const QString &name);
+    void addPlayerNamed(const QString& name);
     void addPlayer();
-    
+
     // void setTime(const Player  &player);
     void setTime(const QString &name);
 

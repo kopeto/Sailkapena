@@ -21,9 +21,12 @@ public:
     void setInitialValue(QLineEdit *input);
     int getElapsedTime();
 
+    QLabel* public_label{nullptr};
+
 private slots:
     void updateCountdown();
     void startCountdown();
+    void toggleHideShow();
 
 private:
     int countdown_seconds_{0};
@@ -32,6 +35,7 @@ private:
     /* Interface Widgets */
     QPointer<QPushButton> start_BTN;    //  QPushButton *start_BTN;
     QPointer<QPushButton> setInitialValue_BTN; //  QPushButton *setInitialValue_BTN;
+    QPointer<QPushButton> hideShowToggle_BTN; 
     QPointer<QLineEdit> input_field_;          //  QLineEdit *input_field_;
     QPointer<QTimer> timer_;                   //  QTimer *timer_;
     QPointer<QLabel> timer_Label;              //  QLabel *label_;

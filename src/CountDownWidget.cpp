@@ -1,30 +1,6 @@
 #include "CountDownWidget.h"
 
-static void setLabel(QPointer<QLabel> label, int seconds)
-{
-    int hours = seconds / (60 * 60); // 60*60
-    int mins = (seconds / 60) % 60;
-    int secs = seconds % 60;
-    label->setText(QString("%1%2:%3").arg((hours > 0 ? QString("%1:").arg(hours) : "")).arg(mins, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0')));
-}
-
-static void setLabelBackground(QPointer<QLabel> label, QColor color)
-{
-    static QPalette pal = label->palette();
-    pal.setColor(QPalette::Window, color);
-    label->setAutoFillBackground(true); // IMPORTANT!
-    label->setPalette(pal);
-}
-
-static void setRedBackground(QPointer<QLabel> label)
-{
-    setLabelBackground(label, QColor(Qt::red));
-}
-
-static void setBlankBackground(QPointer<QLabel> label)
-{
-    setLabelBackground(label, QColor(Qt::transparent));
-}
+#include "setLabel.h"
 
 CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
 {
@@ -39,6 +15,8 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
     start_BTN->setMaximumWidth(150);
     setInitialValue_BTN = new QPushButton("Denbora berritu");
     setInitialValue_BTN->setMaximumWidth(150);
+    hideShowToggle_BTN = new QPushButton("Azaldu/Ezkutatu");
+    hideShowToggle_BTN->setMaximumWidth(200);
 
     /* Labels */
     timer_Label = new QLabel();
@@ -56,11 +34,13 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
     layout_h->addWidget(input_field_);
     layout_h->addWidget(setInitialValue_BTN);
     layout_h->addWidget(start_BTN);
+    layout_h->addWidget(hideShowToggle_BTN);
 
     /* Connections */
     connect(timer_, &QTimer::timeout, this, &CountdownWidget::updateCountdown);
     connect(start_BTN, &QPushButton::clicked, this, &CountdownWidget::startCountdown);
     connect(setInitialValue_BTN, &QPushButton::clicked, this, std::bind(&CountdownWidget::setInitialValue, this, input_field_));
+    connect(hideShowToggle_BTN, &QPushButton::clicked, this, &CountdownWidget::toggleHideShow);
 }
 
 void CountdownWidget::setInitialValue(QLineEdit *input)
@@ -72,12 +52,16 @@ void CountdownWidget::setInitialValue(QLineEdit *input)
     {
         countdown_seconds_ = 0;
         setLabel(timer_Label, 0);
+        if(public_label)
+            setLabel(public_label, 0);
         timer_->stop();
         return;
     }
 
     countdown_seconds_ = secs;
     setLabel(timer_Label, secs);
+    if(public_label)
+            setLabel(public_label, secs);
     timer_->stop();
 }
 
@@ -89,8 +73,7 @@ void CountdownWidget::updateCountdown()
         setRedBackground(timer_Label);
         timer_->stop();
 
-        remaining_seconds_ = countdown_seconds_;
-        timer_Label->setText("Akabo da.");
+        // timer_Label->setText("00:00");
     }
     else
     {
@@ -99,6 +82,7 @@ void CountdownWidget::updateCountdown()
         int mins = (remaining_seconds_ / 60) % 60;
         int secs = remaining_seconds_ % 60;
         setLabel(timer_Label, remaining_seconds_);
+        setLabel(public_label, remaining_seconds_);
     }
 }
 
@@ -108,6 +92,19 @@ void CountdownWidget::startCountdown()
     updateCountdown();
     timer_->start(1000); // Initial delay of 1 second
 }
+
+void CountdownWidget::toggleHideShow()
+{
+    if(timer_Label->isVisible())
+    {
+        timer_Label->hide();
+    }
+    else
+    {
+        timer_Label->show();
+    }
+}
+
 
 int CountdownWidget::getElapsedTime()
 {

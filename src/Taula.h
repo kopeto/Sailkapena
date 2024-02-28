@@ -40,9 +40,6 @@ public:
     int getRowTotalErrorsInternal(int row);
     int getRowTotalErrorsReal(int row);
 
-    bool saveToFile(const QString &filename);
-    bool loadFromFile(const QString &filename);
-
     protected:
     void keyPressEvent(QKeyEvent *event) override ;
 };

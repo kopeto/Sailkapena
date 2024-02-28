@@ -3,6 +3,11 @@
 
 #include <QMessageBox>
 
+static int time2Int(QString str)
+{
+    return str.mid(0, 2).toInt() * 3600 + str.mid(3, 2).toInt() * 60 + str.mid(6, 2).toInt();
+}
+
 Taula::Taula(QWidget *parent) : QTableWidget(parent)
 {
     QStringList headers;
@@ -45,7 +50,7 @@ void Taula::deleteRow(int row)
     {
         QMessageBox::StandardButton reply;
         QString playername = getPlayerNameFromRow(row);
-        QString galdera = "Seguru hago " + playername + " ezabatu nahi dukela ? ";
+        QString galdera = playername + " ezabatu? ";
         reply = QMessageBox::question(this, "Bai", galdera, QMessageBox::Yes | QMessageBox::No );
         if (reply == QMessageBox::Yes)
         {
@@ -94,7 +99,7 @@ int Taula::getRowTotalTimeInternal(int row)
         {
             total_time += 10000;
         }
-        total_time += item(row, GAME1_TIME_COLUMN)->text().toInt();
+        total_time += time2Int (item(row, GAME1_TIME_COLUMN)->text());
     }
     else
     {
@@ -107,7 +112,7 @@ int Taula::getRowTotalTimeInternal(int row)
         {
             total_time += 100000;
         }
-        total_time += item(row, GAME2_TIME_COLUMN)->text().toInt();
+        total_time += time2Int(item(row, GAME2_TIME_COLUMN)->text());
     }
     else
     {
@@ -120,7 +125,7 @@ int Taula::getRowTotalTimeInternal(int row)
         {
             total_time += 1000000;
         }
-        total_time += item(row, GAME3_TIME_COLUMN)->text().toInt();
+        total_time += time2Int( item(row, GAME3_TIME_COLUMN)->text());
     }
     else
     {
@@ -201,15 +206,15 @@ int Taula::getRowTotalTimeReal(int row)
     int total_time = 0;
     if (item(row, GAME1_TIME_COLUMN))
     {
-        total_time += item(row, GAME1_TIME_COLUMN)->text().toInt();
+        total_time += time2Int(item(row, GAME1_TIME_COLUMN)->text());
     }
     if (item(row, GAME2_TIME_COLUMN))
     {
-        total_time += item(row, GAME2_TIME_COLUMN)->text().toInt();
+        total_time += time2Int(item(row, GAME2_TIME_COLUMN)->text());
     }
     if (item(row, GAME3_TIME_COLUMN))
     {
-        total_time += item(row, GAME3_TIME_COLUMN)->text().toInt();
+        total_time += time2Int(item(row, GAME3_TIME_COLUMN)->text());
     }
 
     return total_time;

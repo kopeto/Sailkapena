@@ -3,15 +3,20 @@
 MainWindow::MainWindow()
     : QMainWindow()
 {
-    mainLayout = new QVBoxLayout(this);
+    // mainLayout = new QVBoxLayout(this);
     txapelketa = new Txapelketa(this);
 
     /* Layouts */
-    mainLayout->addWidget(txapelketa);
+    // mainLayout->->addWidget(txapelketa);
+    this->layout()->addWidget(txapelketa);
     setCentralWidget(txapelketa);
 
 
-    /* MENU */
+    /**
+     * 
+     * MENU
+     *  
+     */
     QMenu *fileMenu = menuBar()->addMenu(tr("&Fitxategia"));
     QMenu *helpMenu = menuBar()->addMenu(tr("&Laguntza"));
 
@@ -28,8 +33,9 @@ MainWindow::MainWindow()
     fileMenu->addAction(taulaGorde);
     fileMenu->addAction(taulaIreki);
 
-
     QAction *aboutAction = new QAction(tr("&Ze behar duk?"), this);
     connect(aboutAction, &QAction::triggered, this, &MainWindow::about);
     helpMenu->addAction(aboutAction);
+
+    /*********************/
 }
