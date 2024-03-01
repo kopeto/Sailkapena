@@ -29,8 +29,12 @@ MainWindow::MainWindow()
     QAction *taulaIreki = new QAction(tr("&Taula Ireki"), this);
     connect(taulaIreki, &QAction::triggered, this, &MainWindow::taulaIreki);
 
+    QAction *taulaExceleratu = new QAction(tr("&Taula Exceleratu"), this);
+    connect(taulaExceleratu, &QAction::triggered, this, &MainWindow::taulaExceleratu);
+
     fileMenu->addAction(exitAction);
     fileMenu->addAction(taulaGorde);
+    fileMenu->addAction(taulaExceleratu);
     fileMenu->addAction(taulaIreki);
 
     QAction *aboutAction = new QAction(tr("&Ze behar duk?"), this);

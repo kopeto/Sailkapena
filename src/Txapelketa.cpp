@@ -104,7 +104,7 @@ void Txapelketa::addPlayer()
 void Txapelketa::addPlayerNamed(const QString& name)
 {
     Player p(name);
-    QPushButton *setTime_BTN = new QPushButton("Denbora berritu", this);
+    QPushButton *setTime_BTN = new QPushButton("Berritu", this);
     p.setTime_BTN = setTime_BTN;
     Players.push_back(p);
     taula->addPlayer(p);

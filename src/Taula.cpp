@@ -13,17 +13,18 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
     QStringList headers;
 
     headers << " "
-            << "zk"
             << " Jokalaria "
-            << " Denbora1 "
+            << " T1 "
             << " Akatsak1 "
-            << " Denbora2 "
+            << " T2 "
             << " Akatsak2 "
-            << " Denbora3 "
+            << " T3 "
             << " Akatsak3 "
             << " Denbora "
             << " Akatsak ";
+            
     setColumnCount(headers.size());
+    setColumnWidth(PLAYER_NAME_COLUMN, 300);
     setHorizontalHeaderLabels(headers);
 
 }
@@ -63,7 +64,7 @@ void Taula::deleteRow(int row)
 void Taula::addPlayer(const Player &player)
 {
     insertRow(rowCount());
-    setItem(rowCount() - 1, PLAYER_ID_COLUMN, new QTableWidgetItem(QString("%1").arg(player.getId())));
+    // setItem(rowCount() - 1, PLAYER_ID_COLUMN, new QTableWidgetItem(QString("%1").arg(player.getId())));
     setItem(rowCount() - 1, PLAYER_NAME_COLUMN, new QTableWidgetItem(player.getName()));
 }
 

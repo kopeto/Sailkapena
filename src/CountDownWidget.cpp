@@ -13,7 +13,7 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
     /* Buttons */
     start_BTN = new QPushButton("Hasi");
     start_BTN->setMaximumWidth(150);
-    setInitialValue_BTN = new QPushButton("Denbora berritu");
+    setInitialValue_BTN = new QPushButton("Berritu");
     setInitialValue_BTN->setMaximumWidth(150);
     hideShowToggle_BTN = new QPushButton("Azaldu/Ezkutatu");
     hideShowToggle_BTN->setMaximumWidth(200);
@@ -82,7 +82,8 @@ void CountdownWidget::updateCountdown()
         int mins = (remaining_seconds_ / 60) % 60;
         int secs = remaining_seconds_ % 60;
         setLabel(timer_Label, remaining_seconds_);
-        setLabel(public_label, remaining_seconds_);
+        if(public_label)
+            setLabel(public_label, remaining_seconds_);
     }
 }
 

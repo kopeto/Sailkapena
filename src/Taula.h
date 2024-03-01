@@ -9,16 +9,15 @@
 
 #include "Player.h"
 
-#define PLAYER_ID_COLUMN    1
-#define PLAYER_NAME_COLUMN  2
-#define GAME1_TIME_COLUMN   3
-#define GAME1_ERRORS_COLUMN 4
-#define GAME2_TIME_COLUMN   5
-#define GAME2_ERRORS_COLUMN 6
-#define GAME3_TIME_COLUMN   7
-#define GAME3_ERRORS_COLUMN 8
-#define TOTAL_TIME_COLUMN   9
-#define TOTAL_ERRORS_COLUMN 10
+#define PLAYER_NAME_COLUMN  1
+#define GAME1_TIME_COLUMN   2
+#define GAME1_ERRORS_COLUMN 3
+#define GAME2_TIME_COLUMN   4
+#define GAME2_ERRORS_COLUMN 5
+#define GAME3_TIME_COLUMN   6
+#define GAME3_ERRORS_COLUMN 7
+#define TOTAL_TIME_COLUMN   8
+#define TOTAL_ERRORS_COLUMN 9
 
 class Taula: public QTableWidget
 {

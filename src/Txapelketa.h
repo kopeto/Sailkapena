@@ -63,7 +63,7 @@ public:
     /* IO read write functions */
     bool saveToFile();
     bool loadFromFile();
-    bool savePrintable();
+    bool saveToExcel();
 
 public slots:
     void deletePlayer(const QString &name);

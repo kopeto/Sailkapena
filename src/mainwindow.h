@@ -53,10 +53,17 @@ private slots:
         txapelketa->saveToFile();
     }
 
+    inline void taulaExceleratu()
+    {
+        txapelketa->saveToExcel();
+    }
+
     inline void taulaIreki()
     {
         txapelketa->loadFromFile();
     }
+
+    
 };
 
 #endif // MAINWINDOW_H

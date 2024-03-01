@@ -32,11 +32,11 @@ bool Txapelketa::loadFromFile()
     while (!in.atEnd())
     {
         QString line = in.readLine();
-        QStringList parts = line.split(",");
+        QStringList parts = line.split(":");
 
         addPlayerNamed(parts[0]);
 
-        int col = 2;
+        int col = PLAYER_NAME_COLUMN;
         for (const auto& part: parts)
         {
             QTableWidgetItem *item = new QTableWidgetItem(part);
@@ -65,11 +65,11 @@ bool Txapelketa::saveToFile()
     // Escribir datos en formato CSV
     for (int row = 0; row < taula->rowCount(); ++row)
     {
-        for (int col = 2; col < taula->columnCount()-2; ++col)
+        for (int col = PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
         {
-            if (col > 2)
+            if (col > PLAYER_NAME_COLUMN)
             {
-                out << ",";
+                out << ":";
             }
             QTableWidgetItem *item = taula->item(row, col);
             if (item)
@@ -84,7 +84,7 @@ bool Txapelketa::saveToFile()
     return true;
 }
 
-bool Txapelketa::savePrintable()
+bool Txapelketa::saveToExcel()
 {
     QString filePath = QFileDialog::getSaveFileName(nullptr, "Aukeratu fitxategia", "", "Fitxategi guztiak (*);;CSV fitxategiak (*.csv);;Testu fitxategiak (*.txt)");
     QFile file(filePath);
@@ -95,15 +95,36 @@ bool Txapelketa::savePrintable()
     }
 
     QTextStream out(&file);
+    QStringList headers;
 
-    // Escribir datos en formato CSV
+    headers << "Jokalaria"
+            << "T1"
+            << "Akatsak1"
+            << "T2"
+            << "Akatsak2"
+            << "T3"
+            << "Akatsak3"
+            << "Denbora"
+            << "Akatsak";
+            
+    for (int i = 0; i < headers.size(); ++i)
+    {
+        out << headers[i];
+        if(i<headers.size()-1)
+        {
+            out << ":";
+        }
+    }
+    out << "\n";
+
     for (int row = 0; row < taula->rowCount(); ++row)
     {
-        for (int col = 2; col < taula->columnCount()-2; ++col)
-        {
-            if (col > 2)
+        for (int col = PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
+        {   
+            
+            if (col > PLAYER_NAME_COLUMN)
             {
-                out << ",";
+                out << ":";
             }
             QTableWidgetItem *item = taula->item(row, col);
             if (item)
