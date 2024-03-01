@@ -84,3 +84,38 @@ bool Txapelketa::saveToFile()
     return true;
 }
 
+bool Txapelketa::savePrintable()
+{
+    QString filePath = QFileDialog::getSaveFileName(nullptr, "Aukeratu fitxategia", "", "Fitxategi guztiak (*);;CSV fitxategiak (*.csv);;Testu fitxategiak (*.txt)");
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QMessageBox::warning(this, "Error", "Ezin fitxategia ireki.");
+        return false;
+    }
+
+    QTextStream out(&file);
+
+    // Escribir datos en formato CSV
+    for (int row = 0; row < taula->rowCount(); ++row)
+    {
+        for (int col = 2; col < taula->columnCount()-2; ++col)
+        {
+            if (col > 2)
+            {
+                out << ",";
+            }
+            QTableWidgetItem *item = taula->item(row, col);
+            if (item)
+            {
+                out << item->text();
+            }
+        }
+        out << "\n";
+    }
+
+    file.close();
+    return true;
+}
+
+
