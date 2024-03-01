@@ -68,23 +68,24 @@ void CountdownWidget::setInitialValue(QLineEdit *input)
 void CountdownWidget::updateCountdown()
 {
     remaining_seconds_ -= 1;
-    if (remaining_seconds_ < 0)
-    {
-        setRedBackground(timer_Label);
-        timer_->stop();
 
-        // timer_Label->setText("00:00");
-    }
-    else
-    {
-        setBlankBackground(timer_Label);
+    setBlankBackground(timer_Label);
         int hours = remaining_seconds_ / (60 * 60); // 60*60
         int mins = (remaining_seconds_ / 60) % 60;
         int secs = remaining_seconds_ % 60;
         setLabel(timer_Label, remaining_seconds_);
         if(public_label)
             setLabel(public_label, remaining_seconds_);
+
+
+    if (remaining_seconds_ <= 0)
+    {
+        setRedBackground(timer_Label);
+        timer_->stop();
+
+        // timer_Label->setText("00:00");
     }
+
 }
 
 void CountdownWidget::startCountdown()
