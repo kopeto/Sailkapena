@@ -6,6 +6,8 @@
 #include <QTextStream>
 #include <QFileDialog>
 
+static char delimiter = ';';
+
 bool Txapelketa::loadFromFile()
 {
     QString filePath = QFileDialog::getOpenFileName(nullptr, "Aukeratu fitxategia", "", "Fitxategi guztiak (*);;CSV fitxategiak (*.csv);;Testu fitxategiak (*.txt)");
@@ -32,7 +34,7 @@ bool Txapelketa::loadFromFile()
     while (!in.atEnd())
     {
         QString line = in.readLine();
-        QStringList parts = line.split(":");
+        QStringList parts = line.split(delimiter);
 
         addPlayerNamed(parts[0]);
 
@@ -69,7 +71,7 @@ bool Txapelketa::saveToFile()
         {
             if (col > PLAYER_NAME_COLUMN)
             {
-                out << ":";
+                out << delimiter;
             }
             QTableWidgetItem *item = taula->item(row, col);
             if (item)
@@ -112,7 +114,7 @@ bool Txapelketa::saveToExcel()
         out << headers[i];
         if(i<headers.size()-1)
         {
-            out << ":";
+            out << delimiter;
         }
     }
     out << "\n";
@@ -124,7 +126,7 @@ bool Txapelketa::saveToExcel()
             
             if (col > PLAYER_NAME_COLUMN)
             {
-                out << ":";
+                out << delimiter;
             }
             QTableWidgetItem *item = taula->item(row, col);
             if (item)

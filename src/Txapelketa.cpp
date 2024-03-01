@@ -31,8 +31,8 @@ Txapelketa::Txapelketa(QWidget *parent)
     GameSelectorGroup = new QButtonGroup();
     GameSelectorLayout = new QHBoxLayout();
     GameSelectorLayout->setAlignment(Qt::AlignLeft);
-    game_1 = new QRadioButton("Lehen Jokoa");
-    game_2 = new QRadioButton("Bigarren Jokoa");
+    game_1 = new QRadioButton("Lehen Proba");
+    game_2 = new QRadioButton("Finalaurrekoa");
     game_final = new QRadioButton("Finala");
 
     game_1->setChecked(true);

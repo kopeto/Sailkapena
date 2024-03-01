@@ -20,7 +20,7 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
 
     /* Labels */
     timer_Label = new QLabel();
-    timer_Label->setFont(QFont("Arial", 400));
+    timer_Label->setFont(QFont("Arial", 75));
     timer_Label->setTextFormat(Qt::RichText); 
     timer_Label->setAlignment(Qt::AlignCenter);
     setLabel(timer_Label, 0);

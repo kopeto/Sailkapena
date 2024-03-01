@@ -24,8 +24,12 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
             << " Akatsak ";
             
     setColumnCount(headers.size());
-    setColumnWidth(PLAYER_NAME_COLUMN, 300);
+    setColumnWidth(PLAYER_NAME_COLUMN, 250);
+    setColumnWidth(GAME1_ERRORS_COLUMN, 75);
+    setColumnWidth(GAME2_ERRORS_COLUMN, 75);
+    setColumnWidth(GAME3_ERRORS_COLUMN, 75);
     setHorizontalHeaderLabels(headers);
+
 
 }
 
