@@ -1,7 +1,9 @@
 #include "Taula.h"
 #include "Txapelketa.h"
 
+
 #include <QMessageBox>
+#include <QHeaderView>
 
 static int time2Int(QString str)
 {
@@ -18,20 +20,21 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
             << "   "
             << " T2 "
             << "   "
+            << ""
             << " T3 "
             << "   "
             << " Denbora "
             << " Akatsak ";
-            
+
     setColumnCount(headers.size());
     setColumnWidth(PLAYER_NAME_COLUMN, 250);
     setColumnWidth(GAME1_ERRORS_COLUMN, 75);
     setColumnWidth(GAME2_ERRORS_COLUMN, 75);
     setColumnWidth(GAME3_ERRORS_COLUMN, 75);
+    setColumnWidth(FINALS_SEPARATOR_COLUMN, 2);
+    horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed); // Fijar el tamaño
     setHorizontalHeaderLabels(headers);
     setMinimumWidth(1280);
-
-
 }
 
 void Taula::keyPressEvent(QKeyEvent *event)
@@ -57,7 +60,7 @@ void Taula::deleteRow(int row)
         QMessageBox::StandardButton reply;
         QString playername = getPlayerNameFromRow(row);
         QString galdera = playername + " ezabatu? ";
-        reply = QMessageBox::question(this, "Bai", galdera, QMessageBox::Yes | QMessageBox::No );
+        reply = QMessageBox::question(this, "Bai", galdera, QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes)
         {
             // Si el usuario confirma, eliminar la fila
@@ -105,7 +108,7 @@ int Taula::getRowTotalTimeInternal(int row)
         {
             total_time += 10000;
         }
-        total_time += time2Int (item(row, GAME1_TIME_COLUMN)->text());
+        total_time += time2Int(item(row, GAME1_TIME_COLUMN)->text());
     }
     else
     {
@@ -131,7 +134,7 @@ int Taula::getRowTotalTimeInternal(int row)
         {
             total_time += 1000000;
         }
-        total_time += time2Int( item(row, GAME3_TIME_COLUMN)->text());
+        total_time += time2Int(item(row, GAME3_TIME_COLUMN)->text());
     }
     else
     {
@@ -224,4 +227,37 @@ int Taula::getRowTotalTimeReal(int row)
     }
 
     return total_time;
+}
+
+void Taula::sort(GameState _state)
+{
+    sortByColumn(Taula::TOTAL_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
+    sortByColumn(Taula::TOTAL_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
+
+    if (_state == GameState::GAME_FINAL)
+    {
+        sortByColumn(Taula::GAME3_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
+        sortByColumn(Taula::GAME3_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
+    }
+}
+
+void Taula::highlightFirstRows(int numRows)
+{
+    for (int row = 0; row < rowCount(); ++row)
+    {
+        for (int col = 0; col < columnCount(); ++col)
+        {
+            if (item(row, col))
+            {
+                if (row < numRows)
+                {
+                    item(row, col)->setBackground(QColor(210, 255, 210));
+                }
+                else
+                {
+                    item(row, col)->setBackground(QColor(255, 255, 255));
+                }
+            }
+        }
+    }
 }

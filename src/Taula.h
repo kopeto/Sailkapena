@@ -6,23 +6,48 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QSortFilterProxyModel>
 
 #include "Player.h"
 
-#define PLAYER_NAME_COLUMN  1
-#define GAME1_TIME_COLUMN   2
-#define GAME1_ERRORS_COLUMN 3
-#define GAME2_TIME_COLUMN   4
-#define GAME2_ERRORS_COLUMN 5
-#define GAME3_TIME_COLUMN   6
-#define GAME3_ERRORS_COLUMN 7
-#define TOTAL_TIME_COLUMN   8
-#define TOTAL_ERRORS_COLUMN 9
+enum class GameState;
+
+class MultiSortProxy : public QSortFilterProxyModel {
+public:
+    explicit MultiSortProxy(QObject* parent = nullptr)
+        : QSortFilterProxyModel(parent) {}
+
+protected:
+    bool lessThan(const QModelIndex& left, const QModelIndex& right) const override {
+        // columna primaria
+        QVariant a1 = sourceModel()->data(sourceModel()->index(left.row(), 0));
+        QVariant b1 = sourceModel()->data(sourceModel()->index(right.row(), 0));
+        if (a1 != b1)
+            return true;
+
+        // columna secundaria
+        QVariant a2 = sourceModel()->data(sourceModel()->index(left.row(), 1));
+        QVariant b2 = sourceModel()->data(sourceModel()->index(right.row(), 1));
+        return  true;
+    }
+};
 
 class Taula: public QTableWidget
 {
     Q_OBJECT
+
 public:
+    static constexpr int PLAYER_NAME_COLUMN   = 1;
+    static constexpr int GAME1_TIME_COLUMN    = 2;
+    static constexpr int GAME1_ERRORS_COLUMN  = 3;
+    static constexpr int GAME2_TIME_COLUMN    = 4;
+    static constexpr int GAME2_ERRORS_COLUMN  = 5;
+    static constexpr int FINALS_SEPARATOR_COLUMN    = 6;
+    static constexpr int GAME3_TIME_COLUMN    = 7;
+    static constexpr int GAME3_ERRORS_COLUMN  = 8;
+    static constexpr int TOTAL_TIME_COLUMN    = 9;
+    static constexpr int TOTAL_ERRORS_COLUMN  = 10;
+
     Taula(QWidget *parent = nullptr);
     ~Taula() = default;
 
@@ -39,8 +64,13 @@ public:
     int getRowTotalErrorsInternal(int row);
     int getRowTotalErrorsReal(int row);
 
+    void sort(GameState _state);
+
+    void highlightFirstRows(int numRows);
+
     protected:
     void keyPressEvent(QKeyEvent *event) override ;
+
 };
 
 

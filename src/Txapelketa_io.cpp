@@ -38,7 +38,7 @@ bool Txapelketa::loadFromFile()
 
         addPlayerNamed(parts[0]);
 
-        int col = PLAYER_NAME_COLUMN;
+        int col = Taula::PLAYER_NAME_COLUMN;
         for (const auto& part: parts)
         {
             QTableWidgetItem *item = new QTableWidgetItem(part);
@@ -68,9 +68,9 @@ bool Txapelketa::saveToFile_( const QString &filePath )
     // Escribir datos en formato CSV
     for (int row = 0; row < taula->rowCount(); ++row)
     {
-        for (int col = PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
+        for (int col = Taula::PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
         {
-            if (col > PLAYER_NAME_COLUMN)
+            if (col > Taula::PLAYER_NAME_COLUMN)
             {
                 out << delimiter;
             }
@@ -129,10 +129,10 @@ bool Txapelketa::saveToExcel()
 
     for (int row = 0; row < taula->rowCount(); ++row)
     {
-        for (int col = PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
+        for (int col = Taula::PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)
         {   
             
-            if (col > PLAYER_NAME_COLUMN)
+            if (col > Taula::PLAYER_NAME_COLUMN)
             {
                 out << delimiter;
             }

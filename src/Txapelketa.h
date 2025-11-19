@@ -8,21 +8,33 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QString>
-
+#include <QVBoxLayout>
 #include <QWindow>
+#include <QLineEdit>
 
 #include <vector>
 
 #include "Player.h"
-#include "Taula.h"
-#include "CountDownWidget.h"
 #include "PublicWindow.h"
+
+class Taula;
+class CountdownWidget;
+
+enum class GameState
+{
+    GAME1,
+    GAME2,
+    GAME_FINAL
+};
 
 class Txapelketa : public QWidget
 {
     Q_OBJECT
 
+static constexpr int FINALISTS_COUNT = 6;
+
 public:
+
     Txapelketa(QWidget *parent = nullptr);
     ~Txapelketa() = default;
 
@@ -79,6 +91,7 @@ private:
     void checkDraws_();
     bool saveToFile_( const QString& filePath );
     QString _tmpResultsFilePath{"/tmp/txapelketa_results.tmp"};
+    GameState currentGameState{GameState::GAME1};
 };
 
 #endif // TXAPELKETA_H
