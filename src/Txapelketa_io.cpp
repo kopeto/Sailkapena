@@ -52,15 +52,16 @@ bool Txapelketa::loadFromFile()
     return true;
 }
 
-bool Txapelketa::saveToFile()
+bool Txapelketa::saveToFile_( const QString &filePath )
 {
-    QString filePath = QFileDialog::getSaveFileName(nullptr, "Aukeratu fitxategia", "", "Fitxategi guztiak (*);;CSV fitxategiak (*.csv);;Testu fitxategiak (*.txt)");
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         QMessageBox::warning(this, "Error", "Ezin fitxategia ireki.");
         return false;
     }
+
+    qDebug() << "Saving results to file: " << filePath;
 
     QTextStream out(&file);
 
@@ -84,6 +85,13 @@ bool Txapelketa::saveToFile()
 
     file.close();
     return true;
+}
+
+bool Txapelketa::saveToFile()
+{
+    QString filePath = QFileDialog::getSaveFileName(nullptr, "Aukeratu fitxategia", "", "Fitxategi guztiak (*);;CSV fitxategiak (*.csv);;Testu fitxategiak (*.txt)");
+
+    return saveToFile_( filePath );
 }
 
 bool Txapelketa::saveToExcel()

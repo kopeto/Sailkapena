@@ -15,11 +15,11 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
     headers << " "
             << " Jokalaria "
             << " T1 "
-            << " Akatsak1 "
+            << "   "
             << " T2 "
-            << " Akatsak2 "
+            << "   "
             << " T3 "
-            << " Akatsak3 "
+            << "   "
             << " Denbora "
             << " Akatsak ";
             
@@ -29,6 +29,7 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
     setColumnWidth(GAME2_ERRORS_COLUMN, 75);
     setColumnWidth(GAME3_ERRORS_COLUMN, 75);
     setHorizontalHeaderLabels(headers);
+    setMinimumWidth(1280);
 
 
 }

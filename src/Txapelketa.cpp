@@ -188,7 +188,13 @@ void Txapelketa::updateTable()
     taula->sortByColumn(TOTAL_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
     taula->sortByColumn(TOTAL_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
 
+    // check draws and update if needed
+    checkDraws_();
+
     updateReals_();
+
+    /* Save to temp file */
+    saveToFile_(_tmpResultsFilePath);
 }
 
 void Txapelketa::updateInternals_()
@@ -224,6 +230,31 @@ void Txapelketa::updateReals_()
         totTimeItem->setData(Qt::DisplayRole, total_time_show_data); // Accepts a QVariant
         totTimeItem->setData(Qt::UserRole, total_time);
         taula->setItem(row, TOTAL_TIME_COLUMN, totTimeItem);
+    }
+}
+
+void Txapelketa::checkDraws_()
+{
+    // Iterate over all rows to find draws
+    for (int row1 = 0; row1 < taula->rowCount(); ++row1)
+    {
+        int time1 = taula->item(row1, TOTAL_TIME_COLUMN)->data(Qt::UserRole).toInt();
+        int errors1 = taula->item(row1, TOTAL_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
+
+        for (int row2 = row1 + 1; row2 < taula->rowCount(); ++row2)
+        {
+            int time2 = taula->item(row2, TOTAL_TIME_COLUMN)->data(Qt::UserRole).toInt();
+            int errors2 = taula->item(row2, TOTAL_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
+
+            // Check for draw
+            if (time1 == time2 && errors1 == errors2)
+            {
+                // Handle the draw case (e.g., log it, mark it in the table, etc.)
+                qDebug() << "Draw detected between rows" << row1 << "and" << row2;
+                qDebug() << "Both have time:" << time1 << "and errors:" << errors1;
+                // Additional logic to resolve the draw can be implemented here
+            }
+        }
     }
 }
 

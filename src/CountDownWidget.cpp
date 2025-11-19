@@ -47,7 +47,7 @@ void CountdownWidget::setInitialValue(QLineEdit *input)
 {
     setBlankBackground(timer_Label);
     bool ok;
-    int secs = input->text().toInt(&ok);
+    int mins = input->text().toInt(&ok);
     if (!ok)
     {
         countdown_seconds_ = 0;
@@ -58,10 +58,10 @@ void CountdownWidget::setInitialValue(QLineEdit *input)
         return;
     }
 
-    countdown_seconds_ = secs;
-    setLabel(timer_Label, secs);
+    countdown_seconds_ = mins * 60;
+    setLabel(timer_Label, countdown_seconds_);
     if(public_label)
-            setLabel(public_label, secs);
+            setLabel(public_label, countdown_seconds_);
     timer_->stop();
 }
 

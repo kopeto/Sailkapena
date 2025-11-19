@@ -37,9 +37,6 @@ private:
 private slots:
     inline void exit()
     {
-        // QMessageBox::StandardButton reply;
-        // reply = QMessageBox::question(this, "Irten", "Seguru al hago atera nahi dukela?", QMessageBox::Yes | QMessageBox::No);
-        // if (reply == QMessageBox::Yes)
         QApplication::quit();
     }
 
@@ -62,8 +59,6 @@ private slots:
     {
         txapelketa->loadFromFile();
     }
-
-    
 };
 
 #endif // MAINWINDOW_H

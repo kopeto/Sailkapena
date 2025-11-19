@@ -7,7 +7,7 @@
 #include <QStandardItemModel>
 #include <QRadioButton>
 #include <QButtonGroup>
-
+#include <QString>
 
 #include <QWindow>
 
@@ -76,6 +76,9 @@ public slots:
 private:
     void updateInternals_();
     void updateReals_();
+    void checkDraws_();
+    bool saveToFile_( const QString& filePath );
+    QString _tmpResultsFilePath{"/tmp/txapelketa_results.tmp"};
 };
 
 #endif // TXAPELKETA_H
