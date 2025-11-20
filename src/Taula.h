@@ -12,26 +12,6 @@
 
 enum class GameState;
 
-class MultiSortProxy : public QSortFilterProxyModel {
-public:
-    explicit MultiSortProxy(QObject* parent = nullptr)
-        : QSortFilterProxyModel(parent) {}
-
-protected:
-    bool lessThan(const QModelIndex& left, const QModelIndex& right) const override {
-        // columna primaria
-        QVariant a1 = sourceModel()->data(sourceModel()->index(left.row(), 0));
-        QVariant b1 = sourceModel()->data(sourceModel()->index(right.row(), 0));
-        if (a1 != b1)
-            return true;
-
-        // columna secundaria
-        QVariant a2 = sourceModel()->data(sourceModel()->index(left.row(), 1));
-        QVariant b2 = sourceModel()->data(sourceModel()->index(right.row(), 1));
-        return  true;
-    }
-};
-
 class Taula: public QTableWidget
 {
     Q_OBJECT
@@ -65,11 +45,15 @@ public:
     int getRowTotalErrorsReal(int row);
 
     void sort(GameState _state);
+    void sortNRows(int column, int n, Qt::SortOrder order);
 
     void highlightFirstRows(int numRows);
 
     protected:
     void keyPressEvent(QKeyEvent *event) override ;
+
+    void tmpUpdate();
+    void updateValues();
 
 };
 

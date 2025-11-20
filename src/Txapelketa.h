@@ -86,11 +86,9 @@ public slots:
     void setTime(const QString &name);
 
 private:
-    void updateInternals_();
-    void updateReals_();
     void checkDraws_();
     bool saveToFile_( const QString& filePath );
-    QString _tmpResultsFilePath{"/tmp/txapelketa_results.tmp"};
+    QString _tmpResultsFilePath{"/home/ander/txapelketa_results.tmp"};
     GameState currentGameState{GameState::GAME1};
 };
 

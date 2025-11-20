@@ -187,58 +187,14 @@ void Txapelketa::setTime(const QString &name)
 
 void Txapelketa::updateTable()
 {
-    updateInternals_();
-
-    /* Sort */
-    // taula->sortByColumn(Taula::TOTAL_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
-    // taula->sortByColumn(Taula::TOTAL_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
     taula->sort(currentGameState);
 
-    // check draws and update if needed
     checkDraws_();
-
-    updateReals_();
 
     taula->highlightFirstRows(FINALISTS_COUNT);
 
     /* Save to temp file */
     saveToFile_(_tmpResultsFilePath);
-}
-
-void Txapelketa::updateInternals_()
-{
-    for (auto row{0}; row < taula->rowCount(); ++row)
-    {
-        int total_errors = taula->getRowTotalErrorsInternal(row);
-        int total_time = taula->getRowTotalTimeInternal(row);
-
-        QTableWidgetItem *totErrItem = new QTableWidgetItem();
-        totErrItem->setData(Qt::EditRole, total_errors); // Accepts a QVariant
-        taula->setItem(row, Taula::GAME1_2_ERRORS_COLUMN, totErrItem);
-
-        QTableWidgetItem *totTimeItem = new QTableWidgetItem();
-        totTimeItem->setData(Qt::EditRole, total_time); // Accepts a QVariant
-        taula->setItem(row, Taula::GAME1_2_TIME_COLUMN, totTimeItem);
-    }
-}
-
-void Txapelketa::updateReals_()
-{
-    for (auto row{0}; row < taula->rowCount(); ++row)
-    {
-        int total_errors = taula->getRowTotalErrorsReal(row);
-        int total_time = taula->getRowTotalTimeReal(row);
-
-        QTableWidgetItem *totErrItem = new QTableWidgetItem(total_errors);
-        totErrItem->setData(Qt::EditRole, total_errors);
-        taula->setItem(row, Taula::GAME1_2_ERRORS_COLUMN, totErrItem);
-
-        QString total_time_show_data = int2Time(total_time);
-        QTableWidgetItem *totTimeItem = new QTableWidgetItem(total_time_show_data);
-        totTimeItem->setData(Qt::DisplayRole, total_time_show_data); // Accepts a QVariant
-        totTimeItem->setData(Qt::UserRole, total_time);
-        taula->setItem(row, Taula::GAME1_2_TIME_COLUMN, totTimeItem);
-    }
 }
 
 void Txapelketa::checkDraws_()
