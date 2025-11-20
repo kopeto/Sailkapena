@@ -16,21 +16,21 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
 
     headers << " "
             << " Jokalaria "
-            << " T1 "
+            << " 1. Proba "
             << "   "
-            << " T2 "
+            << " 2. Proba "
             << "   "
-            << ""
-            << " T3 "
+            << " Batera "
             << "   "
-            << " Denbora "
-            << " Akatsak ";
+            << "   "
+            << " Finala "
+            << "   ";
 
     setColumnCount(headers.size());
     setColumnWidth(PLAYER_NAME_COLUMN, 250);
     setColumnWidth(GAME1_ERRORS_COLUMN, 75);
     setColumnWidth(GAME2_ERRORS_COLUMN, 75);
-    setColumnWidth(GAME3_ERRORS_COLUMN, 75);
+    setColumnWidth(GAME1_2_ERRORS_COLUMN, 75);
     setColumnWidth(FINALS_SEPARATOR_COLUMN, 2);
     horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed); // Fijar el tamaño
     setHorizontalHeaderLabels(headers);
@@ -128,19 +128,6 @@ int Taula::getRowTotalTimeInternal(int row)
         total_time += 100000;
     }
 
-    if (item(row, GAME3_TIME_COLUMN))
-    {
-        if (item(row, GAME3_TIME_COLUMN)->text() == "")
-        {
-            total_time += 1000000;
-        }
-        total_time += time2Int(item(row, GAME3_TIME_COLUMN)->text());
-    }
-    else
-    {
-        total_time += 1000000;
-    }
-
     return total_time;
 }
 
@@ -175,20 +162,6 @@ int Taula::getRowTotalErrorsInternal(int row)
         total_errors += 10000;
     }
 
-    if (item(row, GAME3_ERRORS_COLUMN))
-    {
-        bool ok;
-        item(row, GAME3_ERRORS_COLUMN)->text().toInt(&ok);
-        if (!ok)
-            total_errors += 100000;
-        else
-            total_errors += item(row, GAME3_ERRORS_COLUMN)->text().toInt();
-    }
-    else
-    {
-        total_errors += 100000;
-    }
-
     return total_errors;
 }
 
@@ -203,10 +176,7 @@ int Taula::getRowTotalErrorsReal(int row)
     {
         total_errors += item(row, GAME2_ERRORS_COLUMN)->text().toInt();
     }
-    if (item(row, GAME3_ERRORS_COLUMN))
-    {
-        total_errors += item(row, GAME3_ERRORS_COLUMN)->text().toInt();
-    }
+
     return total_errors;
 }
 
@@ -221,23 +191,19 @@ int Taula::getRowTotalTimeReal(int row)
     {
         total_time += time2Int(item(row, GAME2_TIME_COLUMN)->text());
     }
-    if (item(row, GAME3_TIME_COLUMN))
-    {
-        total_time += time2Int(item(row, GAME3_TIME_COLUMN)->text());
-    }
 
     return total_time;
 }
 
 void Taula::sort(GameState _state)
 {
-    sortByColumn(Taula::TOTAL_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
-    sortByColumn(Taula::TOTAL_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
+    sortByColumn(Taula::GAME1_2_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
+    sortByColumn(Taula::GAME1_2_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
 
     if (_state == GameState::GAME_FINAL)
     {
-        sortByColumn(Taula::GAME3_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
-        sortByColumn(Taula::GAME3_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
+        sortByColumn(Taula::FINALS_TIME_COLUMN, Qt::SortOrder::AscendingOrder);
+        sortByColumn(Taula::FINALS_ERRORS_COLUMN, Qt::SortOrder::AscendingOrder);
     }
 }
 

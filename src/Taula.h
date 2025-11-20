@@ -42,11 +42,11 @@ public:
     static constexpr int GAME1_ERRORS_COLUMN  = 3;
     static constexpr int GAME2_TIME_COLUMN    = 4;
     static constexpr int GAME2_ERRORS_COLUMN  = 5;
-    static constexpr int FINALS_SEPARATOR_COLUMN    = 6;
-    static constexpr int GAME3_TIME_COLUMN    = 7;
-    static constexpr int GAME3_ERRORS_COLUMN  = 8;
-    static constexpr int TOTAL_TIME_COLUMN    = 9;
-    static constexpr int TOTAL_ERRORS_COLUMN  = 10;
+    static constexpr int GAME1_2_TIME_COLUMN  = 6;
+    static constexpr int GAME1_2_ERRORS_COLUMN  = 7;
+    static constexpr int FINALS_SEPARATOR_COLUMN = 8;
+    static constexpr int FINALS_TIME_COLUMN    = 9;
+    static constexpr int FINALS_ERRORS_COLUMN  = 10;
 
     Taula(QWidget *parent = nullptr);
     ~Taula() = default;

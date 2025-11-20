@@ -214,11 +214,11 @@ void Txapelketa::updateInternals_()
 
         QTableWidgetItem *totErrItem = new QTableWidgetItem();
         totErrItem->setData(Qt::EditRole, total_errors); // Accepts a QVariant
-        taula->setItem(row, Taula::TOTAL_ERRORS_COLUMN, totErrItem);
+        taula->setItem(row, Taula::GAME1_2_ERRORS_COLUMN, totErrItem);
 
         QTableWidgetItem *totTimeItem = new QTableWidgetItem();
         totTimeItem->setData(Qt::EditRole, total_time); // Accepts a QVariant
-        taula->setItem(row, Taula::TOTAL_TIME_COLUMN, totTimeItem);
+        taula->setItem(row, Taula::GAME1_2_TIME_COLUMN, totTimeItem);
     }
 }
 
@@ -231,13 +231,13 @@ void Txapelketa::updateReals_()
 
         QTableWidgetItem *totErrItem = new QTableWidgetItem(total_errors);
         totErrItem->setData(Qt::EditRole, total_errors);
-        taula->setItem(row, Taula::TOTAL_ERRORS_COLUMN, totErrItem);
+        taula->setItem(row, Taula::GAME1_2_ERRORS_COLUMN, totErrItem);
 
         QString total_time_show_data = int2Time(total_time);
         QTableWidgetItem *totTimeItem = new QTableWidgetItem(total_time_show_data);
         totTimeItem->setData(Qt::DisplayRole, total_time_show_data); // Accepts a QVariant
         totTimeItem->setData(Qt::UserRole, total_time);
-        taula->setItem(row, Taula::TOTAL_TIME_COLUMN, totTimeItem);
+        taula->setItem(row, Taula::GAME1_2_TIME_COLUMN, totTimeItem);
     }
 }
 
@@ -246,13 +246,13 @@ void Txapelketa::checkDraws_()
     // Iterate over all rows to find draws
     for (int row1 = 0; row1 < taula->rowCount(); ++row1)
     {
-        int time1 = taula->item(row1, Taula::TOTAL_TIME_COLUMN)->data(Qt::UserRole).toInt();
-        int errors1 = taula->item(row1, Taula::TOTAL_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
+        int time1 = taula->item(row1, Taula::GAME1_2_TIME_COLUMN)->data(Qt::UserRole).toInt();
+        int errors1 = taula->item(row1, Taula::GAME1_2_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
 
         for (int row2 = row1 + 1; row2 < taula->rowCount(); ++row2)
         {
-            int time2 = taula->item(row2, Taula::TOTAL_TIME_COLUMN)->data(Qt::UserRole).toInt();
-            int errors2 = taula->item(row2, Taula::TOTAL_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
+            int time2 = taula->item(row2, Taula::GAME1_2_TIME_COLUMN)->data(Qt::UserRole).toInt();
+            int errors2 = taula->item(row2, Taula::GAME1_2_ERRORS_COLUMN)->data(Qt::EditRole).toInt();
 
             // Check for draw
             if (time1 == time2 && errors1 == errors2)
@@ -281,8 +281,8 @@ std::pair<int, int> Txapelketa::getCurrentGameColumns()
             cols.second = Taula::GAME2_ERRORS_COLUMN;
             break;
         case GameState::GAME_FINAL:
-            cols.first = Taula::GAME3_TIME_COLUMN;
-            cols.second = Taula::GAME3_ERRORS_COLUMN;
+            cols.first = Taula::FINALS_TIME_COLUMN;
+            cols.second = Taula::FINALS_ERRORS_COLUMN;
             break;
     }
 
