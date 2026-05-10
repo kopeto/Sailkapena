@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Generate compile_commands.json for IntelliSense path resolution
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# set(QT6CMAKE_PATH "/opt/Qt/6.6.1/gcc_64/lib/cmake/")
+# set(QT6CMAKE_PATH "/opt/Qt/6.10.2/gcc_64/lib/cmake/")
 
 # set(CMAKE_PREFIX_PATH
 #     ${QT6CMAKE_PATH}"Qt6"

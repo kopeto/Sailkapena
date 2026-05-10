@@ -8,8 +8,8 @@ setlocal EnableDelayedExpansion
 
 :: --- Configuration: adjust these paths to your Qt installation ---
 :: Examples:
-::   C:\Qt\6.7.0\msvc2019_64
-::   C:\Qt\6.7.0\mingw_64
+::   C:\Qt\6.10.2\msvc2022_64
+::   C:\Qt\6.10.2\mingw_64
 set QT_DIR=
 
 :: Build output directory
@@ -37,7 +37,7 @@ if "%QT_DIR%"=="" (
     echo.
     echo ERROR: Qt6 not found automatically.
     echo Edit this script and set QT_DIR manually.
-    echo Example: set QT_DIR=C:\Qt\6.7.0\msvc2022_64
+    echo Example: set QT_DIR=C:\Qt\6.10.2\msvc2022_64
     pause
     exit /b 1
 )
