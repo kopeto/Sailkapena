@@ -9,6 +9,7 @@ MainWindow::MainWindow()
     /* Layouts */
     // mainLayout->->addWidget(txapelketa);
     this->layout()->addWidget(txapelketa);
+    this->showMaximized();
     setCentralWidget(txapelketa);
 
 

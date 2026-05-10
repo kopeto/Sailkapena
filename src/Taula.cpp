@@ -30,7 +30,7 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
             << "   "
             << " 2. Proba "
             << "   "
-            << " Batera "
+            << " Guztira "
             << "   "
             << "   "
             << " Finala "
@@ -44,7 +44,7 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
     setColumnWidth(FINALS_SEPARATOR_COLUMN, 2);
     horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed); // Fijar el tamaño
     setHorizontalHeaderLabels(headers);
-    setMinimumWidth(1280);
+    // setMinimumWidth(1280);
 }
 
 void Taula::keyPressEvent(QKeyEvent *event)
@@ -376,6 +376,21 @@ void Taula::updateValues()
                 if (it)
                     delete it;
             }
+        }
+    }
+}
+
+void Taula::reset( bool removeNames  )
+{
+    for (auto row{0}; row < rowCount(); ++row)
+    {
+        int firstCol = removeNames? 0 : 1;
+        for (auto col{firstCol}; col < columnCount(); ++col)
+        {
+            // delete item
+            QTableWidgetItem *it = takeItem(row, col);
+            if (it)
+                delete it;
         }
     }
 }

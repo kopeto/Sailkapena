@@ -49,6 +49,8 @@ public:
 
     void highlightFirstRows(int numRows);
 
+    void reset( bool removeNames = false );
+
     protected:
     void keyPressEvent(QKeyEvent *event) override ;
 
