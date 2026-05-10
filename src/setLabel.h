@@ -14,7 +14,7 @@ static void setLabel(QPointer<QLabel> label, int seconds)
 
 static void setLabelBackground(QPointer<QLabel> label, QColor color)
 {
-    static QPalette pal = label->palette();
+    QPalette pal = label->palette();
     pal.setColor(QPalette::Window, color);
     label->setAutoFillBackground(true); // IMPORTANT!
     label->setPalette(pal);

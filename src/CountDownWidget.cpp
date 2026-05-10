@@ -20,7 +20,12 @@ CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
 
     /* Labels */
     timer_Label = new QLabel();
-    timer_Label->setFont(QFont("Arial", 150));
+    {
+        QFont f("Arial");
+        f.setStyleHint(QFont::SansSerif); // fallback to system sans-serif on Linux
+        f.setPointSize(150);
+        timer_Label->setFont(f);
+    }
     timer_Label->setTextFormat(Qt::RichText); 
     timer_Label->setAlignment(Qt::AlignCenter);
     setLabel(timer_Label, 0);
@@ -70,9 +75,6 @@ void CountdownWidget::updateCountdown()
     remaining_seconds_ -= 1;
 
     setBlankBackground(timer_Label);
-        int hours = remaining_seconds_ / (60 * 60); // 60*60
-        int mins = (remaining_seconds_ / 60) % 60;
-        int secs = remaining_seconds_ % 60;
         setLabel(timer_Label, remaining_seconds_);
         if(public_label)
             setLabel(public_label, remaining_seconds_);

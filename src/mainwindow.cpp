@@ -7,10 +7,8 @@ MainWindow::MainWindow()
     txapelketa = new Txapelketa(this);
 
     /* Layouts */
-    // mainLayout->->addWidget(txapelketa);
-    this->layout()->addWidget(txapelketa);
-    this->showMaximized();
     setCentralWidget(txapelketa);
+    this->showMaximized();
 
 
     /**

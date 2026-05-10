@@ -27,6 +27,7 @@ bool Txapelketa::loadFromFile()
 
     QTextStream in(&file);
     mainLayout->removeWidget(taula);
+    delete taula.data();
     taula = new Taula(this);
     mainLayout->addWidget(taula);
 
@@ -65,7 +66,7 @@ bool Txapelketa::saveToFile_( const QString &filePath )
 
     QTextStream out(&file);
 
-    // Escribir datos en formato CSV
+    // Write data in CSV format
     for (int row = 0; row < taula->rowCount(); ++row)
     {
         for (int col = Taula::PLAYER_NAME_COLUMN; col < taula->columnCount(); ++col)

@@ -3,6 +3,7 @@
 
 #include <QMessageBox>
 #include <QHeaderView>
+#include <algorithm>
 
 static int time2Int(QString str)
 {
@@ -42,7 +43,7 @@ Taula::Taula(QWidget *parent) : QTableWidget(parent)
     setColumnWidth(GAME2_ERRORS_COLUMN, 75);
     setColumnWidth(GAME1_2_ERRORS_COLUMN, 75);
     setColumnWidth(FINALS_SEPARATOR_COLUMN, 2);
-    horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed); // Fijar el tamaño
+    horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed); // Fix column size
     setHorizontalHeaderLabels(headers);
     // setMinimumWidth(1280);
 }
@@ -51,20 +52,20 @@ void Taula::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Delete)
     {
-        // Obtener la fila seleccionada
+        // Get the selected row
         int row = currentRow();
         deleteRow(row);
     }
     else
     {
-        // Llamar a la implementación base para otros casos de teclas
+        // Call the base implementation for other key events
         QTableWidget::keyPressEvent(event);
     }
 }
 
 void Taula::deleteRow(int row)
 {
-    // Verificar si hay una fila seleccionada
+    // Check if there is a selected row
     if (row >= 0 && row < rowCount())
     {
         QMessageBox::StandardButton reply;
@@ -73,7 +74,7 @@ void Taula::deleteRow(int row)
         reply = QMessageBox::question(this, "Bai", galdera, QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes)
         {
-            // Si el usuario confirma, eliminar la fila
+            // If the user confirms, delete the row
             removeRow(row);
         }
     }

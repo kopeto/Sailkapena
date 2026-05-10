@@ -11,6 +11,7 @@
 #include <QVBoxLayout>
 #include <QWindow>
 #include <QLineEdit>
+#include <QStandardPaths>
 
 #include <vector>
 
@@ -88,7 +89,7 @@ public slots:
 private:
     void checkDraws_();
     bool saveToFile_( const QString& filePath );
-    QString _tmpResultsFilePath{"/home/ander/txapelketa_results.tmp"};
+    QString _tmpResultsFilePath{QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/txapelketa_results.tmp"};
     GameState currentGameState{GameState::GAME1};
 };
 

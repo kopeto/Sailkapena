@@ -59,7 +59,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     input_player_name = new QLineEdit();
 
     // /* image */
-    //     // Creamos un QLabel para mostrar la imagen
+    //     // Create a QLabel to display the image
     // image_label = new QLabel(this);
     // image_pixmap = new QPixmap("../img/jokoa1.jpeg");
     // if (!image_pixmap->isNull()) {
