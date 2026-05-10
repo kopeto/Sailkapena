@@ -1,4 +1,4 @@
-# Hitz gurutzatuak
+# SailkapenaHG
 
 ## Sailkapenerako aplikazioa
 
@@ -18,5 +18,5 @@ cmake .. && make
 ### Abiaraztea
 ```bash
 cd build
-./Hitzgurutzatuak
+./SailkapenaHG
 ```

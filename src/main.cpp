@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    a.setApplicationName("HitzGurutzatuak");
+    a.setApplicationName("SailkapenaHG");
     a.setApplicationVersion("0.1");
 
     qInfo() << "Application name: " << a.applicationName();

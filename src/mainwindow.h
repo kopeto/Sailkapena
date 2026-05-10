@@ -42,7 +42,7 @@ private slots:
 
     inline void about()
     {
-        QMessageBox::about(this, "Hitz Gurutzatuen Txapelketa", "Zer jakin nahi duk?");
+        QMessageBox::about(this, "SailkapenaHG", "Zer jakin nahi duk?");
     }
 
     inline void taulaGorde()

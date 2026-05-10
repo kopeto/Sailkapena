@@ -2,11 +2,16 @@
 
 PublicWindow::PublicWindow() : QWidget()
 {
-    setWindowTitle("Hitz gurutzatuak");
+    setWindowTitle("SailkapenaHG");
     resize(300, 200);
 
     timerlabel = new QLabel();
-    timerlabel->setFont(QFont("Arial", 400));
+    {
+        QFont f("Arial");
+        f.setStyleHint(QFont::SansSerif); // fallback to system sans-serif on Linux
+        f.setPointSize(400);
+        timerlabel->setFont(f);
+    }
     timerlabel->setTextFormat(Qt::RichText); 
     timerlabel->setAlignment(Qt::AlignCenter);
 

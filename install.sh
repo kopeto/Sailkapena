@@ -2,7 +2,7 @@
 
 ./build.sh
 
-targets=(HitzGurutzatuak)
+targets=(SailkapenaHG)
 
 for name in "${targets[@]}"; do
   src="build/$name"
