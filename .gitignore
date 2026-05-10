@@ -1,6 +1,12 @@
 
 # build
 [Bb]uild/
+build_windows/
+installer_output/
 
+# CMake
+CMakeUserPresets.json
+build/
 
+# VS Code (configuracion local de cada desarrollador)
 .vscode/

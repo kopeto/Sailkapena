@@ -51,6 +51,6 @@ else
 fi
     
 mkdir -p build
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 cmake --build build -j $(nproc)
 
