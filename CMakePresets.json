@@ -67,17 +67,3 @@
     }
   ]
 }
-
-  "buildPresets": [
-    {
-      "name": "debug",
-      "displayName": "Build Debug",
-      "configurePreset": "debug"
-    },
-    {
-      "name": "release",
-      "displayName": "Build Release",
-      "configurePreset": "release"
-    }
-  ]
-}
