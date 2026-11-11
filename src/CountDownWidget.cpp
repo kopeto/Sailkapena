@@ -39,8 +39,8 @@ CountdownWidget::CountdownWidget(QWidget *parent)
     startButton_->setMaximumWidth(150);
     setInitialValueButton_ = new QPushButton(tr("Ezarri denbora"), this);
     setInitialValueButton_->setMaximumWidth(150);
-    hideShowToggleButton_ = new QPushButton(tr("Erakutsi/Ezkutatu"), this);
-    hideShowToggleButton_->setMaximumWidth(200);
+    hideShowToggleButton_ = new QPushButton(tr("Pantaila publikoa erakutsi/ezkutatu"), this);
+    hideShowToggleButton_->setMaximumWidth(260);
 
     timerLabel_ = new QLabel(this);
     roundLabel_ = new QLabel(this);
@@ -68,7 +68,7 @@ CountdownWidget::CountdownWidget(QWidget *parent)
     connect(timer_, &QTimer::timeout, this, &CountdownWidget::updateCountdown);
     connect(startButton_, &QPushButton::clicked, this, &CountdownWidget::startCountdown);
     connect(setInitialValueButton_, &QPushButton::clicked, this, &CountdownWidget::setInitialValue);
-    connect(hideShowToggleButton_, &QPushButton::clicked, this, &CountdownWidget::toggleHideShow);
+    connect(hideShowToggleButton_, &QPushButton::clicked, this, &CountdownWidget::publicDisplayToggleRequested);
 }
 
 void CountdownWidget::configureRound(int durationMinutes, const QString &roundName)
@@ -165,14 +165,6 @@ void CountdownWidget::startCountdown()
         setLabel(public_label, remainingSeconds_);
     }
     timer_->start();
-}
-
-void CountdownWidget::toggleHideShow()
-{
-    if (timerLabel_->isVisible())
-        timerLabel_->hide();
-    else
-        timerLabel_->show();
 }
 
 int CountdownWidget::getElapsedTime() const

@@ -18,7 +18,7 @@ MainWindow::MainWindow()
     connect(exportAction, &QAction::triggered, this, &MainWindow::taulaCsvraEsportatu);
     QAction *openAction = new QAction(tr("Emaitzak &ireki"), this);
     connect(openAction, &QAction::triggered, this, &MainWindow::taulaIreki);
-    QAction *formatAction = new QAction(tr("Txapelketaren formatua editatu (&JSON)"), this);
+    QAction *formatAction = new QAction(tr("Txapelketaren formatua editatu"), this);
     connect(formatAction, &QAction::triggered, txapelketa, &Txapelketa::editTournamentFormat);
     QAction *exitAction = new QAction(tr("&Irten"), this);
     connect(exitAction, &QAction::triggered, this, &MainWindow::exit);

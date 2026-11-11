@@ -29,9 +29,9 @@ build_windows.bat
 
 ## Txapelketaren formatua
 
-Txandaren gaineko **Txapelketaren formatua editatu (JSON)** botoiak formatua aplikaziotik editatzeko aukera ematen du. JSON fitxategia bertan ireki, aldatu, gorde eta aplikatu daiteke. Formatu aldaketak uneko jokalariak eta emaitzak berrabiarazten ditu; aplikazioak berrespena eskatzen du.
+**Txapelketaren formatua editatu** leihoan txapelketaren izena eta txanda guztiak interfaze grafikoan konfiguratzen dira: iraupena, puntuatzeko irizpideak eta lehentasuna, sailkapen metatua, zenbat jokalari pasatzen diren eta berdinketen tratamendua. Txandak gehitu, kendu edo ordena daitezke. JSON botoiak formatua inportatu edo esportatzeko dira; konfigurazioa ez da testu-editore batean idazten. Formatua aplikatzeak uneko jokalariak eta emaitzak berrabiarazten ditu, eta aurretik berrespena erakusten du.
 
-Adibide bat dago [data/txapelketa_formatua.json](data/txapelketa_formatua.json) fitxategian. Formatua aplikatzeko, editoreko **JSON kargatu...** botoiarekin ireki eta **Formatua aplikatu** sakatu.
+Adibide bat dago [data/txapelketa_formatua.json](data/txapelketa_formatua.json) fitxategian. Inportatutako JSONa GUIko kontrolen bidez berrikusi eta aldatu daiteke aplikatu aurretik.
 
 JSONen arauak:
 
@@ -50,4 +50,4 @@ Sailkapen metatuan, taulak metatutako denbora edo akatsak ere erakusten ditu, sa
 
 **Emaitzak gorde/ireki** aukerek JSON saio-fitxategia erabiltzen dute. Fitxategiak formatua, emaitzak, uneko txanda eta izoztutako sailkapenak gordetzen ditu. CSV esportazioak taula irakurtzeko balio du, baina ez du formatua edo aurrerapen-egoera gordetzen. Aurreko 9 eta 10 zutabeko CSV saioak ireki daitezke.
 
-Aplikazioak azken saioaren JSON kopia automatikoa gordetzen du erabiltzailearen aplikazio-datuen karpetan. Aurreko CSV kopia badago, hura ere berreskura daiteke.
+Aplikazioak azken saioaren JSON kopia automatikoa gordetzen du erabiltzailearen aplikazio-datuen karpetan, eta hurrengo abiaraztean automatikoki kargatzen du. Aurreko CSV kopia badago, hura ere berreskura daiteke.

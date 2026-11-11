@@ -31,7 +31,9 @@ private slots:
     void updateCountdown();
     void startCountdown();
     void setInitialValue();
-    void toggleHideShow();
+
+signals:
+    void publicDisplayToggleRequested();
 
 private:
     int countdownSeconds_{0};

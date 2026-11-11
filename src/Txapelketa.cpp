@@ -6,12 +6,16 @@
 #include "TimeFormat.h"
 
 #include <QAbstractButton>
+#include <QCheckBox>
 #include <QCollator>
+#include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
+#include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -19,11 +23,13 @@
 #include <QListWidgetItem>
 #include <QLocale>
 #include <QMessageBox>
-#include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSaveFile>
+#include <QSpinBox>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QUuid>
 
 #include <algorithm>
 #include <limits>
@@ -47,6 +53,23 @@ bool roundHasCriterion(const RoundDefinition &round, ResultCriterion criterion)
 {
     return std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
 }
+
+struct RoundEditorRow
+{
+    QString id;
+    QGroupBox *card{nullptr};
+    QLineEdit *name{nullptr};
+    QSpinBox *duration{nullptr};
+    QComboBox *criteria{nullptr};
+    QComboBox *rankingScope{nullptr};
+    QCheckBox *advanceAll{nullptr};
+    QSpinBox *advanceCount{nullptr};
+    QLabel *advanceLabel{nullptr};
+    QComboBox *tiePolicy{nullptr};
+    QPushButton *moveUp{nullptr};
+    QPushButton *moveDown{nullptr};
+    QPushButton *remove{nullptr};
+};
 }
 
 Txapelketa::Txapelketa(QWidget *parent)
@@ -59,7 +82,7 @@ Txapelketa::Txapelketa(QWidget *parent)
 
     finishRoundButton_ = new QPushButton(this);
     updateTableButton_ = new QPushButton(tr("Sailkapena eguneratu"), this);
-    editFormatButton_ = new QPushButton(tr("Txapelketaren formatua editatu (JSON)"), this);
+    editFormatButton_ = new QPushButton(tr("Txapelketaren formatua editatu"), this);
     roundControlLayout_ = new QHBoxLayout();
     roundControlLayout_->setAlignment(Qt::AlignLeft);
     roundControlLayout_->addWidget(currentRoundLabel_);
@@ -85,6 +108,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     connect(editFormatButton_, &QPushButton::clicked, this, &Txapelketa::editTournamentFormat);
     connect(addPlayerButton_, &QPushButton::clicked, this, &Txapelketa::addPlayer);
     connect(playerNameInput_, &QLineEdit::returnPressed, this, &Txapelketa::addPlayer);
+    connect(timer_, &CountdownWidget::publicDisplayToggleRequested, this, &Txapelketa::togglePublicWindow);
     connect(table_, &Taula::recordTimeRequested, this, &Txapelketa::recordTime);
     connect(table_, &Taula::removePlayerRequested, this, &Txapelketa::removePlayer);
     connect(table_, &Taula::resultEdited, this, &Txapelketa::updateResult);
@@ -110,17 +134,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     refreshTable();
     const QString checkpointToRestore = QFile::exists(checkpointPath_) ? checkpointPath_ : legacyCheckpointPath_;
     if (QFile::exists(checkpointToRestore))
-    {
-        QMessageBox message(QMessageBox::Question, tr("Aurreko saioa berreskuratu"),
-                            tr("Aurreko lehiaketaren kopia aurkitu da. Berreskuratu nahi duzu?"),
-                            QMessageBox::NoButton, this);
-        QAbstractButton *restoreButton = message.addButton(tr("Bai"), QMessageBox::AcceptRole);
-        QAbstractButton *discardButton = message.addButton(tr("Ez"), QMessageBox::RejectRole);
-        message.setDefaultButton(qobject_cast<QPushButton *>(discardButton));
-        message.exec();
-        if (message.clickedButton() == restoreButton)
-            loadFromFile_(checkpointToRestore);
-    }
+        loadFromFile_(checkpointToRestore);
 }
 
 void Txapelketa::addPlayer()
@@ -404,30 +418,220 @@ void Txapelketa::editTournamentFormat()
 {
     QDialog dialog(this);
     dialog.setWindowTitle(tr("Txapelketaren formatua editatu"));
-    dialog.resize(720, 620);
+    dialog.resize(920, 720);
     auto *layout = new QVBoxLayout(&dialog);
-    auto *help = new QLabel(tr("Editatu JSON formatua. Irizpideen zerrendako ordenak sailkapeneko lehentasuna adierazten du."), &dialog);
-    help->setWordWrap(true);
-    layout->addWidget(help);
-    auto *editor = new QPlainTextEdit(&dialog);
-    editor->setLineWrapMode(QPlainTextEdit::NoWrap);
-    editor->setPlainText(QString::fromUtf8(definition_.toJson()));
-    layout->addWidget(editor);
+    auto *formatName = new QLineEdit(definition_.name, &dialog);
+    auto *nameLayout = new QHBoxLayout();
+    nameLayout->addWidget(new QLabel(tr("Txapelketaren izena"), &dialog));
+    nameLayout->addWidget(formatName, 1);
+    layout->addLayout(nameLayout);
 
-    auto *fileButtons = new QHBoxLayout();
-    auto *loadButton = new QPushButton(tr("JSON kargatu..."), &dialog);
-    auto *saveButton = new QPushButton(tr("JSON gorde..."), &dialog);
-    fileButtons->addWidget(loadButton);
-    fileButtons->addWidget(saveButton);
-    fileButtons->addStretch();
-    layout->addLayout(fileButtons);
+    auto *scrollArea = new QScrollArea(&dialog);
+    scrollArea->setWidgetResizable(true);
+    auto *roundsContainer = new QWidget(scrollArea);
+    auto *roundsLayout = new QVBoxLayout(roundsContainer);
+    roundsLayout->setAlignment(Qt::AlignTop);
+    roundsLayout->addStretch(1);
+    scrollArea->setWidget(roundsContainer);
+    layout->addWidget(scrollArea, 1);
+
+    std::vector<RoundEditorRow> rows;
+    QString formatId = definition_.formatId;
+    auto updateRoundControls = [&rows]() {
+        for (std::size_t index = 0; index < rows.size(); ++index)
+        {
+            RoundEditorRow &row = rows[index];
+            row.card->setTitle(QObject::tr("%1. txanda").arg(index + 1));
+            row.moveUp->setEnabled(index > 0);
+            row.moveDown->setEnabled(index + 1 < rows.size());
+            const bool isFinalRound = index + 1 == rows.size();
+            row.advanceLabel->setText(isFinalRound ? QObject::tr("Aurrerapena: azken txanda")
+                                                   : QObject::tr("Aurrera pasatzeko kopurua"));
+            row.advanceAll->setEnabled(!isFinalRound);
+            row.advanceCount->setEnabled(!isFinalRound && !row.advanceAll->isChecked());
+            row.tiePolicy->setEnabled(!isFinalRound);
+        }
+    };
+
+    auto createRoundRow = [&rows, roundsLayout, &updateRoundControls, &dialog](const RoundDefinition *source) {
+        RoundEditorRow row;
+        row.id = source ? source->id : QUuid::createUuid().toString(QUuid::WithoutBraces);
+        row.card = new QGroupBox(roundsLayout->parentWidget());
+        auto *grid = new QGridLayout(row.card);
+        row.name = new QLineEdit(row.card);
+        row.name->setPlaceholderText(QObject::tr("Adibidez: Finala"));
+        row.duration = new QSpinBox(row.card);
+        row.duration->setRange(1, 1440);
+        row.duration->setSuffix(QObject::tr(" min"));
+        row.criteria = new QComboBox(row.card);
+        row.criteria->addItem(QObject::tr("Akatsak, ondoren denbora"), QStringLiteral("errors,time"));
+        row.criteria->addItem(QObject::tr("Denbora, ondoren akatsak"), QStringLiteral("time,errors"));
+        row.criteria->addItem(QObject::tr("Akatsak bakarrik"), QStringLiteral("errors"));
+        row.criteria->addItem(QObject::tr("Denbora bakarrik"), QStringLiteral("time"));
+        row.rankingScope = new QComboBox(row.card);
+        row.rankingScope->addItem(QObject::tr("Txanda honetako emaitzak"), QStringLiteral("round"));
+        row.rankingScope->addItem(QObject::tr("Emaitza metatuak"), QStringLiteral("cumulative"));
+        row.advanceLabel = new QLabel(row.card);
+        row.advanceAll = new QCheckBox(QObject::tr("Denak pasatuko dira"), row.card);
+        row.advanceCount = new QSpinBox(row.card);
+        row.advanceCount->setRange(1, 1000000);
+        row.advanceCount->setValue(6);
+        row.tiePolicy = new QComboBox(row.card);
+        row.tiePolicy->addItem(QObject::tr("Berdindutako guztiak pasatu"), QStringLiteral("includeTies"));
+        row.tiePolicy->addItem(QObject::tr("Eskuz aukeratu"), QStringLiteral("manual"));
+        row.moveUp = new QPushButton(QObject::tr("Gora"), row.card);
+        row.moveDown = new QPushButton(QObject::tr("Behera"), row.card);
+        row.remove = new QPushButton(QObject::tr("Txanda kendu"), row.card);
+
+        grid->addWidget(new QLabel(QObject::tr("Izena"), row.card), 0, 0);
+        grid->addWidget(row.name, 0, 1);
+        grid->addWidget(new QLabel(QObject::tr("Iraupena"), row.card), 0, 2);
+        grid->addWidget(row.duration, 0, 3);
+        grid->addWidget(new QLabel(QObject::tr("Irizpideak eta lehentasuna"), row.card), 1, 0);
+        grid->addWidget(row.criteria, 1, 1, 1, 3);
+        grid->addWidget(new QLabel(QObject::tr("Sailkapena"), row.card), 2, 0);
+        grid->addWidget(row.rankingScope, 2, 1, 1, 3);
+        grid->addWidget(row.advanceLabel, 3, 0);
+        grid->addWidget(row.advanceAll, 3, 1);
+        grid->addWidget(row.advanceCount, 3, 2);
+        grid->addWidget(new QLabel(QObject::tr("Berdinketak"), row.card), 4, 0);
+        grid->addWidget(row.tiePolicy, 4, 1, 1, 3);
+        auto *orderButtons = new QHBoxLayout();
+        orderButtons->addStretch();
+        orderButtons->addWidget(row.moveUp);
+        orderButtons->addWidget(row.moveDown);
+        orderButtons->addWidget(row.remove);
+        grid->addLayout(orderButtons, 5, 0, 1, 4);
+
+        if (source)
+        {
+            row.name->setText(source->name);
+            row.duration->setValue(source->durationMinutes);
+            QStringList criteriaKeys;
+            for (ResultCriterion criterion : source->criteria)
+                criteriaKeys.append(criterion == ResultCriterion::Time ? QStringLiteral("time") : QStringLiteral("errors"));
+            row.criteria->setCurrentIndex(row.criteria->findData(criteriaKeys.join(QLatin1Char(','))));
+            row.rankingScope->setCurrentIndex(row.rankingScope->findData(
+                source->rankingScope == RankingScope::Cumulative ? QStringLiteral("cumulative") : QStringLiteral("round")));
+            row.tiePolicy->setCurrentIndex(row.tiePolicy->findData(
+                source->tiePolicy == TiePolicy::Manual ? QStringLiteral("manual") : QStringLiteral("includeTies")));
+            row.advanceAll->setChecked(!source->advanceCount.has_value());
+            row.advanceCount->setValue(source->advanceCount.value_or(6));
+        }
+
+        QWidget *card = row.card;
+        rows.push_back(row);
+        roundsLayout->insertWidget(static_cast<int>(rows.size() - 1), card);
+        QObject::connect(row.advanceAll, &QCheckBox::toggled, card, [&updateRoundControls](bool) {
+            updateRoundControls();
+        });
+        QObject::connect(row.moveUp, &QPushButton::clicked, card, [card, &rows, roundsLayout, &updateRoundControls]() {
+            const auto found = std::find_if(rows.begin(), rows.end(), [card](const RoundEditorRow &candidate) {
+                return candidate.card == card;
+            });
+            if (found == rows.begin() || found == rows.end())
+                return;
+            const std::size_t index = static_cast<std::size_t>(std::distance(rows.begin(), found));
+            roundsLayout->removeWidget(card);
+            std::swap(rows[index], rows[index - 1]);
+            roundsLayout->insertWidget(static_cast<int>(index - 1), card);
+            updateRoundControls();
+        });
+        QObject::connect(row.moveDown, &QPushButton::clicked, card, [card, &rows, roundsLayout, &updateRoundControls]() {
+            const auto found = std::find_if(rows.begin(), rows.end(), [card](const RoundEditorRow &candidate) {
+                return candidate.card == card;
+            });
+            if (found == rows.end() || std::next(found) == rows.end())
+                return;
+            const std::size_t index = static_cast<std::size_t>(std::distance(rows.begin(), found));
+            roundsLayout->removeWidget(card);
+            std::swap(rows[index], rows[index + 1]);
+            roundsLayout->insertWidget(static_cast<int>(index + 1), card);
+            updateRoundControls();
+        });
+        QObject::connect(row.remove, &QPushButton::clicked, card, [card, &rows, roundsLayout, &updateRoundControls, &dialog]() {
+            if (rows.size() <= 1)
+            {
+                showBasqueMessage(&dialog, QMessageBox::Information, QObject::tr("Txandak"),
+                                  QObject::tr("Gutxienez txanda bat eduki behar du txapelketak."));
+                return;
+            }
+            roundsLayout->removeWidget(card);
+            rows.erase(std::remove_if(rows.begin(), rows.end(), [card](const RoundEditorRow &candidate) {
+                return candidate.card == card;
+            }), rows.end());
+            card->deleteLater();
+            updateRoundControls();
+        });
+        updateRoundControls();
+    };
+
+    auto replaceRounds = [&rows, roundsLayout]() {
+        while (!rows.empty())
+        {
+            roundsLayout->removeWidget(rows.back().card);
+            delete rows.back().card;
+            rows.pop_back();
+        }
+    };
+
+    for (const RoundDefinition &round : definition_.rounds)
+        createRoundRow(&round);
+
+    auto *roundButtons = new QHBoxLayout();
+    auto *addRoundButton = new QPushButton(tr("Gehitu txanda"), &dialog);
+    auto *importButton = new QPushButton(tr("JSON inportatu..."), &dialog);
+    auto *exportButton = new QPushButton(tr("JSON esportatu..."), &dialog);
+    roundButtons->addWidget(addRoundButton);
+    roundButtons->addStretch();
+    roundButtons->addWidget(importButton);
+    roundButtons->addWidget(exportButton);
+    layout->addLayout(roundButtons);
 
     auto *dialogButtons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dialog);
     dialogButtons->button(QDialogButtonBox::Cancel)->setText(tr("Utzi"));
     auto *applyButton = dialogButtons->addButton(tr("Formatua aplikatu"), QDialogButtonBox::AcceptRole);
     layout->addWidget(dialogButtons);
-    connect(loadButton, &QPushButton::clicked, &dialog, [this, editor, &dialog]() {
-        const QString path = QFileDialog::getOpenFileName(&dialog, tr("JSON formatua ireki"), QString(), tr("JSON fitxategiak (*.json)"));
+
+    auto collectDefinition = [&rows, formatName, &formatId](TournamentDefinition &result, QString &error) {
+        if (rows.empty())
+        {
+            error = QObject::tr("Gutxienez txanda bat eduki behar du txapelketak.");
+            return false;
+        }
+        TournamentDefinition draft;
+        draft.formatId = formatId.trimmed().isEmpty() ? QStringLiteral("custom-tournament") : formatId;
+        draft.name = formatName->text().trimmed().isEmpty() ? QObject::tr("Txapelketa") : formatName->text().trimmed();
+        for (std::size_t index = 0; index < rows.size(); ++index)
+        {
+            const RoundEditorRow &source = rows[index];
+            RoundDefinition round;
+            round.id = source.id;
+            round.name = source.name->text().trimmed().isEmpty()
+                             ? QObject::tr("%1. txanda").arg(index + 1) : source.name->text().trimmed();
+            round.durationMinutes = source.duration->value();
+            const QStringList criteria = source.criteria->currentData().toString().split(QLatin1Char(','));
+            for (const QString &criterion : criteria)
+                round.criteria.append(criterion == QStringLiteral("time") ? ResultCriterion::Time : ResultCriterion::Errors);
+            round.rankingScope = source.rankingScope->currentData().toString() == QStringLiteral("cumulative")
+                                     ? RankingScope::Cumulative : RankingScope::Round;
+            round.tiePolicy = source.tiePolicy->currentData().toString() == QStringLiteral("manual")
+                                  ? TiePolicy::Manual : TiePolicy::IncludeTies;
+            if (index + 1 < rows.size())
+                round.advanceCount = source.advanceAll->isChecked() ? std::nullopt
+                                                                    : std::optional<int>(source.advanceCount->value());
+            draft.rounds.append(round);
+        }
+        return TournamentDefinition::fromJson(draft.toJson(), result, error);
+    };
+
+    connect(addRoundButton, &QPushButton::clicked, &dialog, [createRoundRow]() mutable {
+        createRoundRow(nullptr);
+    });
+    connect(importButton, &QPushButton::clicked, &dialog,
+            [this, &dialog, &formatName, &formatId, &replaceRounds, &createRoundRow]() {
+        const QString path = QFileDialog::getOpenFileName(&dialog, tr("JSON formatua inportatu"), QString(),
+                                                          tr("JSON fitxategiak (*.json)"));
         if (path.isEmpty())
             return;
         QFile file(path);
@@ -436,27 +640,48 @@ void Txapelketa::editTournamentFormat()
             showBasqueMessage(&dialog, QMessageBox::Warning, tr("Errorea"), tr("Ezin izan da JSON fitxategia irakurri."));
             return;
         }
-        editor->setPlainText(QString::fromUtf8(file.readAll()));
+        TournamentDefinition imported;
+        QString error;
+        if (!TournamentDefinition::fromJson(file.readAll(), imported, error))
+        {
+            showBasqueMessage(&dialog, QMessageBox::Warning, tr("JSON baliogabea"), error);
+            return;
+        }
+        formatId = imported.formatId;
+        formatName->setText(imported.name);
+        replaceRounds();
+        for (const RoundDefinition &round : imported.rounds)
+            createRoundRow(&round);
     });
-    connect(saveButton, &QPushButton::clicked, &dialog, [this, editor, &dialog]() {
-        const QString path = QFileDialog::getSaveFileName(&dialog, tr("JSON formatua gorde"), QString(), tr("JSON fitxategiak (*.json)"));
+    connect(exportButton, &QPushButton::clicked, &dialog, [this, &dialog, &collectDefinition]() {
+        TournamentDefinition exported;
+        QString error;
+        if (!collectDefinition(exported, error))
+        {
+            showBasqueMessage(&dialog, QMessageBox::Warning, tr("Formatu baliogabea"), error);
+            return;
+        }
+        const QString path = QFileDialog::getSaveFileName(&dialog, tr("JSON formatua esportatu"), QString(),
+                                                          tr("JSON fitxategiak (*.json)"));
         if (path.isEmpty())
             return;
         QSaveFile file(path);
-        if (!file.open(QIODevice::WriteOnly) || file.write(editor->toPlainText().toUtf8()) < 0 || !file.commit())
+        const QByteArray json = exported.toJson();
+        if (!file.open(QIODevice::WriteOnly) || file.write(json) != json.size() || !file.commit())
         {
             showBasqueMessage(&dialog, QMessageBox::Warning, tr("Errorea"), tr("Ezin izan da JSON fitxategia gorde."));
             return;
         }
-        showBasqueMessage(&dialog, QMessageBox::Information, tr("JSON gorde"), tr("Formatua JSON fitxategian gorde da."));
+        showBasqueMessage(&dialog, QMessageBox::Information, tr("JSON esportatu"),
+                          tr("Txapelketaren formatua JSON fitxategian esportatu da."));
     });
 
     TournamentDefinition editedDefinition;
-    connect(applyButton, &QPushButton::clicked, &dialog, [this, editor, &dialog, &editedDefinition]() {
+    connect(applyButton, &QPushButton::clicked, &dialog, [this, &dialog, &collectDefinition, &editedDefinition]() {
         QString error;
-        if (!TournamentDefinition::fromJson(editor->toPlainText().toUtf8(), editedDefinition, error))
+        if (!collectDefinition(editedDefinition, error))
         {
-            showBasqueMessage(&dialog, QMessageBox::Warning, tr("JSON baliogabea"), error);
+            showBasqueMessage(&dialog, QMessageBox::Warning, tr("Formatu baliogabea"), error);
             return;
         }
         dialog.accept();

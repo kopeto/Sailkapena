@@ -27,7 +27,8 @@ Taula::Taula(QWidget *parent)
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setAlternatingRowColors(true);
-    horizontalHeader()->setStretchLastSection(true);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    horizontalHeader()->setMinimumSectionSize(90);
 
     connect(this, &QTableWidget::itemChanged, this, [this](QTableWidgetItem *changedItem) {
         if (changedItem->column() < PLAYER_NAME_COLUMN)
@@ -88,7 +89,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
     setColumnCount(nextColumn);
     setHorizontalHeaderLabels(headers);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
-    setColumnWidth(PLAYER_NAME_COLUMN, 220);
+    horizontalHeader()->setSectionResizeMode(PLAYER_NAME_COLUMN, QHeaderView::Interactive);
+    setColumnWidth(PLAYER_NAME_COLUMN, 260);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
                     std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), ResultCriterion::Time) ==
                         rounds.at(activeRound).criteria.cend());
