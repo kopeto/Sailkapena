@@ -9,7 +9,7 @@ PublicWindow::PublicWindow(QWidget *parent)
     : QWidget(parent, Qt::Window), timerLabel_(new QLabel(this)), standingsTable_(new Taula(this)),
       layout_(new QVBoxLayout(this))
 {
-    setWindowTitle(tr("Pantaila publikoa - SailkapenaHG"));
+    setWindowTitle(tr("Sailkapena"));
     resize(1200, 760);
 
     QFont font("Arial");
