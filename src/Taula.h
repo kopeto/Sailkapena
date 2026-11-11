@@ -30,6 +30,7 @@ public:
 signals:
     void recordTimeRequested(int playerId);
     void removePlayerRequested(int playerId);
+    void editPlayerNameRequested(int playerId);
     void resultEdited(int playerId, int round, int field, const QString &value);
 
 protected:

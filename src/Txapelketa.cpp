@@ -17,6 +17,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -114,6 +115,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     connect(playerNameInput_, &QLineEdit::returnPressed, this, &Txapelketa::addPlayer);
     connect(timer_, &CountdownWidget::publicDisplayToggleRequested, this, &Txapelketa::togglePublicWindow);
     connect(table_, &Taula::recordTimeRequested, this, &Txapelketa::recordTime);
+    connect(table_, &Taula::editPlayerNameRequested, this, &Txapelketa::editPlayerName);
     connect(table_, &Taula::removePlayerRequested, this, &Txapelketa::removePlayer);
     connect(table_, &Taula::resultEdited, this, &Txapelketa::updateResult);
 
@@ -174,6 +176,46 @@ void Txapelketa::addPlayer()
 
 void Txapelketa::updateTable()
 {
+    refreshTable();
+    saveCheckpoint();
+}
+
+void Txapelketa::editPlayerName(int playerId)
+{
+    Player *player = findPlayer(playerId);
+    if (!player)
+        return;
+
+    bool accepted = false;
+    const QString editedName = QInputDialog::getText(this, tr("Jokalariaren izena editatu"),
+                                                    tr("Jokalariaren izena:"), QLineEdit::Normal,
+                                                    player->name, &accepted).trimmed();
+    if (!accepted || editedName == player->name)
+        return;
+    if (editedName.isEmpty())
+    {
+        showBasqueMessage(this, QMessageBox::Information, tr("Jokalariaren izena editatu"),
+                          tr("Idatzi jokalariaren izena."));
+        return;
+    }
+    if (editedName.contains(QLatin1Char('\n')) || editedName.contains(QLatin1Char('\r')))
+    {
+        showBasqueMessage(this, QMessageBox::Information, tr("Jokalariaren izena editatu"),
+                          tr("Izenak ezin du lerro-jauzirik izan."));
+        return;
+    }
+
+    const auto duplicate = std::find_if(players_.cbegin(), players_.cend(), [playerId, &editedName](const Player &candidate) {
+        return candidate.id != playerId && candidate.name.compare(editedName, Qt::CaseInsensitive) == 0;
+    });
+    if (duplicate != players_.cend())
+    {
+        showBasqueMessage(this, QMessageBox::Information, tr("Jokalariaren izena editatu"),
+                          tr("Izen hori duen jokalaria badago jada."));
+        return;
+    }
+
+    player->name = editedName;
     refreshTable();
     saveCheckpoint();
 }

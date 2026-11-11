@@ -40,6 +40,7 @@ public slots:
 private slots:
     void updateTable();
     void recordTime(int playerId);
+    void editPlayerName(int playerId);
     void removePlayer(int playerId);
     void updateResult(int playerId, int round, int field, const QString &value);
     void finishCurrentRound();

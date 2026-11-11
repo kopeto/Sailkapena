@@ -3,7 +3,9 @@
 #include "TimeFormat.h"
 
 #include <QAbstractButton>
+#include <QApplication>
 #include <QColor>
+#include <QClipboard>
 #include <QFont>
 #include <QHeaderView>
 #include <QFontMetrics>
@@ -11,6 +13,7 @@
 #include <QIcon>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QMenu>
 #include <QPalette>
 #include <QPaintEvent>
 #include <QPainter>
@@ -163,6 +166,7 @@ Taula::Taula(QWidget *parent)
     setItemDelegate(new RoundColumnDelegate(this));
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
+    setContextMenuPolicy(Qt::CustomContextMenu);
     setAlternatingRowColors(true);
     QPalette tablePalette = palette();
     tablePalette.setColor(QPalette::Base, QColor(255, 255, 255));
@@ -172,6 +176,39 @@ Taula::Taula(QWidget *parent)
     setPalette(tablePalette);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     horizontalHeader()->setMinimumSectionSize(40);
+
+    connect(this, &QWidget::customContextMenuRequested, this, [this](const QPoint &position) {
+        if (publicDisplay_)
+            return;
+
+        QTableWidgetItem *nameItem = itemAt(position);
+        if (!nameItem || nameItem->column() != PLAYER_NAME_COLUMN)
+            return;
+
+        const int playerId = nameItem->data(Qt::UserRole).toInt();
+        const QString playerName = nameItem->text();
+        QMenu menu(this);
+        QAction *editNameAction = menu.addAction(tr("Izena editatu"));
+        QAction *removePlayerAction = menu.addAction(tr("Jokalaria ezabatu"));
+        menu.addSeparator();
+        QAction *copyNameAction = menu.addAction(tr("Izena kopiatu"));
+        QAction *chosenAction = menu.exec(viewport()->mapToGlobal(position));
+
+        if (chosenAction == editNameAction)
+            emit editPlayerNameRequested(playerId);
+        else if (chosenAction == removePlayerAction)
+        {
+            QMessageBox message(QMessageBox::Question, tr("Jokalaria ezabatu"),
+                                tr("%1 ezabatu nahi duzu?").arg(playerName), QMessageBox::NoButton, this);
+            QAbstractButton *yesButton = message.addButton(tr("Bai"), QMessageBox::AcceptRole);
+            message.addButton(tr("Ez"), QMessageBox::RejectRole);
+            message.exec();
+            if (message.clickedButton() == yesButton)
+                emit removePlayerRequested(playerId);
+        }
+        else if (chosenAction == copyNameAction)
+            QApplication::clipboard()->setText(playerName);
+    });
 
     connect(this, &QTableWidget::itemChanged, this, [this](QTableWidgetItem *changedItem) {
         if (changedItem->column() < PLAYER_NAME_COLUMN)
@@ -204,6 +241,7 @@ void Taula::setPublicDisplay(bool publicDisplay)
         setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
     setSelectionMode(publicDisplay_ ? QAbstractItemView::NoSelection : QAbstractItemView::SingleSelection);
     setFocusPolicy(publicDisplay_ ? Qt::NoFocus : Qt::StrongFocus);
+    setContextMenuPolicy(publicDisplay_ ? Qt::NoContextMenu : Qt::CustomContextMenu);
 }
 
 void Taula::setPlayers(const std::vector<Player> &players,
