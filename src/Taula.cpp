@@ -110,14 +110,9 @@ public:
     {
     }
 
-    void setColumnBackgrounds(QHash<int, std::array<QColor, 2>> backgrounds)
+    void setColumnTones(QHash<int, int> tones)
     {
-        backgrounds_ = std::move(backgrounds);
-    }
-
-    void setRowBackgrounds(std::array<QColor, 2> backgrounds)
-    {
-        rowBackgrounds_ = std::move(backgrounds);
+        columnTones_ = std::move(tones);
     }
 
 protected:
@@ -127,17 +122,15 @@ protected:
         if (option->state & QStyle::State_Selected)
             return;
 
-        const std::size_t rowShade = static_cast<std::size_t>(index.row() % 2);
-        const auto background = backgrounds_.constFind(index.column());
-        if (background != backgrounds_.cend())
-            option->backgroundBrush = background.value()[static_cast<std::size_t>(index.row() % 2)];
-        else
-            option->backgroundBrush = rowBackgrounds_[rowShade];
+        const int defaultTone = index.column() % 2 == 0 ? 248 : 240;
+        const int columnTone = columnTones_.value(index.column(), defaultTone);
+        const int rowAdjustment = index.row() % 2 == 0 ? 0 : 14;
+        const int tone = std::max(0, columnTone - rowAdjustment);
+        option->backgroundBrush = QColor(tone, tone, tone);
     }
 
 private:
-    QHash<int, std::array<QColor, 2>> backgrounds_;
-    std::array<QColor, 2> rowBackgrounds_{{QColor(255, 255, 255), QColor(235, 235, 235)}};
+    QHash<int, int> columnTones_;
 };
 
 void setReadOnly(QTableWidgetItem *item)
@@ -197,7 +190,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     cutColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     std::vector<HeaderGroup> headerGroups;
-    QHash<int, std::array<QColor, 2>> columnBackgrounds;
+    QHash<int, int> columnTones;
 
     QStringList headers{QString(), tr("Jokalaria")};
     int nextColumn = 2;
@@ -205,38 +198,40 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
-        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(224, 224, 224) : QColor(245, 245, 245);
-        const std::array<QColor, 2> shadedRoundRows{{QColor(226, 226, 226), QColor(210, 210, 210)}};
+        const int firstColumnTone = roundIndex % 2 == 0 ? 220 : 244;
         for (int field = 0; field < 2; ++field)
         {
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
             headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
-            if (roundIndex % 2 == 0)
-                columnBackgrounds.insert(nextColumn - 1, shadedRoundRows);
+            columnTones.insert(nextColumn - 1, firstColumnTone - field * 10);
         }
-        headerGroups.push_back({firstColumn, nextColumn - 1, round.name, roundBackground});
+        const int groupTone = firstColumnTone - 5;
+        headerGroups.push_back({firstColumn, nextColumn - 1, round.name,
+                                QColor(groupTone, groupTone, groupTone)});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
             const int cutFirstColumn = nextColumn;
             cutColumns_[static_cast<std::size_t>(roundIndex)][0] = nextColumn++;
             headers.append(tr("Denbora metatua"));
-            columnBackgrounds.insert(nextColumn - 1, {{QColor(244, 244, 244), QColor(228, 228, 228)}});
+            columnTones.insert(nextColumn - 1, 236);
             cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
             headers.append(tr("Akatsak metatuak"));
-            columnBackgrounds.insert(nextColumn - 1, {{QColor(244, 244, 244), QColor(228, 228, 228)}});
-            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(240, 240, 240)});
+            columnTones.insert(nextColumn - 1, 226);
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(231, 231, 231)});
         }
     }
     setColumnCount(nextColumn);
     setHorizontalHeaderLabels(headers);
+    model()->setHeaderData(PLAYER_ACTION_COLUMN, Qt::Horizontal, QColor(248, 248, 248), Qt::BackgroundRole);
+    model()->setHeaderData(PLAYER_NAME_COLUMN, Qt::Horizontal, QColor(240, 240, 240), Qt::BackgroundRole);
     for (const HeaderGroup &group : headerGroups)
     {
         for (int column = group.firstColumn; column <= group.lastColumn; ++column)
             model()->setHeaderData(column, Qt::Horizontal, group.background, Qt::BackgroundRole);
     }
-    auto *columnDelegate = static_cast<RoundColumnDelegate *>(itemDelegate());
-    columnDelegate->setColumnBackgrounds(std::move(columnBackgrounds));
-    columnDelegate->setRowBackgrounds({{QColor(255, 255, 255), QColor(235, 235, 235)}});
+    for (auto tone = columnTones.cbegin(); tone != columnTones.cend(); ++tone)
+        model()->setHeaderData(tone.key(), Qt::Horizontal, QColor(tone.value(), tone.value(), tone.value()), Qt::BackgroundRole);
+    static_cast<RoundColumnDelegate *>(itemDelegate())->setColumnTones(std::move(columnTones));
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
@@ -255,6 +250,10 @@ void Taula::setPlayers(const std::vector<Player> &players,
 
         auto *recordButton = new QPushButton(tr("Denbora sartu"), this);
         recordButton->setFocusPolicy(Qt::NoFocus);
+        QPalette buttonPalette = recordButton->palette();
+        const int buttonTone = row % 2 == 0 ? 248 : 234;
+        buttonPalette.setColor(QPalette::Button, QColor(buttonTone, buttonTone, buttonTone));
+        recordButton->setPalette(buttonPalette);
         recordButton->setVisible(allowEditing && activeRoundTracksTime);
         recordButton->setEnabled(allowEditing && activeRoundTracksTime && isEligible);
         setCellWidget(row, PLAYER_ACTION_COLUMN, recordButton);
