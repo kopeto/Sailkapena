@@ -335,29 +335,34 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 for (int resultRound = 0; resultRound <= cutRound; ++resultRound)
                 {
                     const RoundDefinition &round = rounds.at(resultRound);
+                    const bool isScored = std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
+                    if (!isScored)
+                        continue;
+
                     if (resultRound >= static_cast<int>(player.results.size()))
                     {
                         complete = false;
-                        break;
+                        continue;
                     }
+
                     const Result &result = player.results[static_cast<std::size_t>(resultRound)];
                     const std::optional<int> value = field == 0 ? result.timeSeconds : result.errors;
                     if (!value)
                     {
-                        const bool isScored = std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
-                        if (isScored)
-                        {
-                            complete = false;
-                            break;
-                        }
+                        complete = false;
                         continue;
                     }
+
                     total += *value;
                     hasValue = true;
                 }
                 auto *aggregateItem = new QTableWidgetItem();
-                if (complete && hasValue)
+                if (hasValue)
+                {
                     aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
+                    if (!complete)
+                        aggregateItem->setToolTip(tr("Emaitza batzuk falta dira; metatua sartutako balioekin kalkulatu da."));
+                }
                 setReadOnly(aggregateItem);
                 setItem(row, column, aggregateItem);
             }

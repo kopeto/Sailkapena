@@ -44,7 +44,7 @@ JSONen arauak:
 
 Txandaz aldatzeko, ez da beharrezkoa jokalari guztien emaitzak osatzea. Osatutako emaitzak osatugabeen aurretik sailkatzen dira; ebaketa-kopuruak osatugabeak ere hartzen baditu, aurrera pasa daitezke. Itxitako txandako sailkapen- eta aurrerapen-erabakiak saioan gordetzen dira.
 
-Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak ebaketa horretara arteko denbora eta akats metatuak erakusten ditu. Denek aurrera egiten duten txandetan ez da ebaketa-zutaberik gehitzen.
+Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak ebaketa horretara arteko denbora eta akats metatuak erakusten ditu, sartutako emaitzekin berriro kalkulatuta. Emaitzaren bat falta bada, metatua eskuragarri dauden balioekin kalkulatzen da. Denek aurrera egiten duten txandetan ez da ebaketa-zutaberik gehitzen.
 
 Taulak txanda bakoitzean konfiguratutako irizpideei dagozkien emaitza-zutabeak erakusten ditu; denbora hautatuta ez badago, ez da denbora-zutaberik agertzen. Edozein txandatako eta jokalaritako emaitza-gelaxkak edita daitezke; sailkapena automatikoki eguneratzen da. Uneko txanda goiko hautatzailean aukera daiteke. Aurreko txanda hautatzean, ondorengo txandetako denbora eta akatsak gordetzen dira. Aurrera berriro egiten denean, hurrengo txandaren sailkapena berriro kalkulatzen da, gordetako emaitzak mantenduta. Sailkapenean txanda horretarako formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
 
