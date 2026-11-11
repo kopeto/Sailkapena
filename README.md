@@ -46,7 +46,7 @@ Txandaz aldatzeko, ez da beharrezkoa jokalari guztien emaitzak osatzea. Osatutak
 
 Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak ebaketa horretara arteko denbora eta akats metatuak erakusten ditu. Denek aurrera egiten duten txandetan ez da ebaketa-zutaberik gehitzen.
 
-Taulak txanda bakoitzean konfiguratutako irizpideei dagozkien emaitza-zutabeak erakusten ditu; denbora hautatuta ez badago, ez da denbora-zutaberik agertzen. Edozein txandatako eta jokalaritako emaitza-gelaxkak edita daitezke; sailkapena automatikoki eguneratzen da. Uneko txanda goiko hautatzailean aukera daiteke. Aurreko txanda berrirekitzean, ondorengo txandetako emaitzak eta sailkapenak ezabatzen dira, berrespena eman ondoren. Sailkapenean txanda horretarako JSON formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
+Taulak txanda bakoitzean konfiguratutako irizpideei dagozkien emaitza-zutabeak erakusten ditu; denbora hautatuta ez badago, ez da denbora-zutaberik agertzen. Edozein txandatako eta jokalaritako emaitza-gelaxkak edita daitezke; sailkapena automatikoki eguneratzen da. Uneko txanda goiko hautatzailean aukera daiteke. Aurreko txanda hautatzean, ondorengo txandetako denbora eta akatsak gordetzen dira. Aurrera berriro egiten denean, hurrengo txandaren sailkapena berriro kalkulatzen da, gordetako emaitzak mantenduta. Sailkapenean txanda horretarako formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
 
 ## Emaitzak gorde eta esportatzea
 

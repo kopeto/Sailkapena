@@ -880,26 +880,6 @@ void Txapelketa::selectRound(int roundIndex)
         return;
     }
 
-    QMessageBox message(QMessageBox::Question, tr("Txanda berrireki"),
-                        tr("Aurreko txanda berrirekitzeak ondorengo txandetako emaitzak eta sailkapenak ezabatuko ditu. Jarraitu nahi duzu?"),
-                        QMessageBox::NoButton, this);
-    QAbstractButton *reopenButton = message.addButton(tr("Berrireki"), QMessageBox::AcceptRole);
-    message.addButton(tr("Utzi"), QMessageBox::RejectRole);
-    message.exec();
-    if (message.clickedButton() != reopenButton)
-    {
-        updateRoundControls();
-        return;
-    }
-
-    for (Player &player : players_)
-    {
-        for (std::size_t round = static_cast<std::size_t>(roundIndex + 1); round < player.results.size(); ++round)
-            player.results[round] = Result{};
-    }
-    for (std::size_t round = static_cast<std::size_t>(roundIndex + 1); round < qualifiedIdsByRound_.size(); ++round)
-        qualifiedIdsByRound_[round].clear();
-
     activeRoundIndex_ = roundIndex;
     tournamentFinished_ = false;
     timer_->configureRound(definition_.rounds.at(activeRoundIndex_).durationMinutes,
