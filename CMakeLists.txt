@@ -20,6 +20,8 @@ set(PROJECT_SOURCES
     src/mainwindow.h
     src/Player.cpp
     src/Player.h
+    src/TournamentFormat.cpp
+    src/TournamentFormat.h
     src/Taula.cpp
     src/Taula.h
     src/Txapelketa.cpp

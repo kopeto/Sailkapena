@@ -1,4 +1,5 @@
 #include "Taula.h"
+
 #include "TimeFormat.h"
 
 #include <QAbstractButton>
@@ -11,8 +12,6 @@
 #include <QTableWidgetItem>
 
 #include <algorithm>
-#include <array>
-#include <optional>
 
 namespace
 {
@@ -25,64 +24,89 @@ void setReadOnly(QTableWidgetItem *item)
 Taula::Taula(QWidget *parent)
     : QTableWidget(parent)
 {
-    setColumnCount(11);
-    setHorizontalHeaderLabels({
-        "", "Jokalaria", "1. proba: denbora", "1. proba: akatsak",
-        "2. proba: denbora", "2. proba: akatsak", "Guztira: denbora",
-        "Guztira: akatsak", "", "Finala: denbora", "Finala: akatsak"
-    });
-
-    setColumnWidth(PLAYER_ACTION_COLUMN, 130);
-    setColumnWidth(PLAYER_NAME_COLUMN, 250);
-    setColumnWidth(GAME1_ERRORS_COLUMN, 75);
-    setColumnWidth(GAME2_ERRORS_COLUMN, 75);
-    setColumnWidth(TOTAL_ERRORS_COLUMN, 75);
-    setColumnWidth(FINALS_SEPARATOR_COLUMN, 2);
-    horizontalHeader()->setSectionResizeMode(FINALS_SEPARATOR_COLUMN, QHeaderView::Fixed);
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setAlternatingRowColors(true);
+    horizontalHeader()->setStretchLastSection(true);
 
     connect(this, &QTableWidget::itemChanged, this, [this](QTableWidgetItem *changedItem) {
-        const int column = changedItem->column();
-        int game = -1;
-        int field = -1;
-        switch (column)
-        {
-        case GAME1_TIME_COLUMN: game = 0; field = 0; break;
-        case GAME1_ERRORS_COLUMN: game = 0; field = 1; break;
-        case GAME2_TIME_COLUMN: game = 1; field = 0; break;
-        case GAME2_ERRORS_COLUMN: game = 1; field = 1; break;
-        case FINALS_TIME_COLUMN: game = 2; field = 0; break;
-        case FINALS_ERRORS_COLUMN: game = 2; field = 1; break;
-        default: return;
-        }
-
+        if (changedItem->column() < PLAYER_NAME_COLUMN)
+            return;
         QTableWidgetItem *nameItem = item(changedItem->row(), PLAYER_NAME_COLUMN);
         if (!nameItem)
             return;
-
         const int playerId = nameItem->data(Qt::UserRole).toInt();
-        emit resultEdited(playerId, game, field, changedItem->text());
+
+        for (std::size_t round = 0; round < roundColumns_.size(); ++round)
+        {
+            for (int field = 0; field < 2; ++field)
+            {
+                if (roundColumns_[round][static_cast<std::size_t>(field)] == changedItem->column())
+                {
+                    emit resultEdited(playerId, static_cast<int>(round), field, changedItem->text());
+                    return;
+                }
+            }
+        }
     });
 }
 
-void Taula::setPlayers(const std::vector<Player> &players, const std::vector<int> &finalistIds, bool finalMode)
+void Taula::setPlayers(const std::vector<Player> &players,
+                       const QVector<RoundDefinition> &rounds,
+                       const std::vector<int> &eligibleIds,
+                       int activeRound,
+                       bool allowEditing)
 {
     const QSignalBlocker blocker(this);
     setSortingEnabled(false);
     clearContents();
+    roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
+    aggregateColumns_ = {{-1, -1}};
+
+    QStringList headers{QString(), tr("Jokalaria")};
+    int nextColumn = 2;
+    for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
+    {
+        const RoundDefinition &round = rounds.at(roundIndex);
+        for (ResultCriterion criterion : round.criteria)
+        {
+            const int field = criterion == ResultCriterion::Time ? 0 : 1;
+            roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
+            headers.append(tr("%1: %2").arg(round.name, criterionName(criterion)));
+        }
+    }
+    if (activeRound >= 0 && activeRound < rounds.size() &&
+        rounds.at(activeRound).rankingScope == RankingScope::Cumulative)
+    {
+        for (ResultCriterion criterion : rounds.at(activeRound).criteria)
+        {
+            const int field = criterion == ResultCriterion::Time ? 0 : 1;
+            aggregateColumns_[static_cast<std::size_t>(field)] = nextColumn++;
+            headers.append(tr("Metatua: %1").arg(criterionName(criterion)));
+        }
+    }
+    setColumnCount(nextColumn);
+    setHorizontalHeaderLabels(headers);
+    setColumnWidth(PLAYER_ACTION_COLUMN, 130);
+    setColumnWidth(PLAYER_NAME_COLUMN, 220);
+    setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
+                    std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), ResultCriterion::Time) ==
+                        rounds.at(activeRound).criteria.cend());
     setRowCount(static_cast<int>(players.size()));
+
+    const bool activeRoundTracksTime = activeRound >= 0 && activeRound < rounds.size() &&
+        std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), ResultCriterion::Time) !=
+            rounds.at(activeRound).criteria.cend();
 
     for (int row = 0; row < static_cast<int>(players.size()); ++row)
     {
         const Player &player = players[static_cast<std::size_t>(row)];
-        const bool isFinalist = std::find(finalistIds.begin(), finalistIds.end(), player.id) != finalistIds.end();
+        const bool isEligible = std::find(eligibleIds.cbegin(), eligibleIds.cend(), player.id) != eligibleIds.cend();
 
         auto *recordButton = new QPushButton(tr("Denbora sartu"), this);
         recordButton->setFocusPolicy(Qt::NoFocus);
-        if (finalMode && !isFinalist)
-            recordButton->setEnabled(false);
+        recordButton->setVisible(allowEditing && activeRoundTracksTime);
+        recordButton->setEnabled(allowEditing && activeRoundTracksTime && isEligible);
         setCellWidget(row, PLAYER_ACTION_COLUMN, recordButton);
         connect(recordButton, &QPushButton::clicked, this, [this, id = player.id]() {
             emit recordTimeRequested(id);
@@ -91,66 +115,73 @@ void Taula::setPlayers(const std::vector<Player> &players, const std::vector<int
         auto *nameItem = new QTableWidgetItem(player.name);
         nameItem->setData(Qt::UserRole, player.id);
         setReadOnly(nameItem);
+        if (activeRound >= 0 && isEligible)
+            nameItem->setBackground(QColor(218, 245, 218));
         setItem(row, PLAYER_NAME_COLUMN, nameItem);
 
-        const std::array<int, 3> timeColumns{{GAME1_TIME_COLUMN, GAME2_TIME_COLUMN, FINALS_TIME_COLUMN}};
-        const std::array<int, 3> errorColumns{{GAME1_ERRORS_COLUMN, GAME2_ERRORS_COLUMN, FINALS_ERRORS_COLUMN}};
-        for (int game = 0; game < 3; ++game)
+        for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
         {
-            const Result &result = player.results[static_cast<std::size_t>(game)];
-            const bool showResult = game != 2 || isFinalist;
-            const bool canEditResult = game != 2 || finalMode;
-
-            auto *timeItem = new QTableWidgetItem();
-            if (showResult && result.timeSeconds)
+            const bool isEditableRound = allowEditing && static_cast<int>(roundIndex) == activeRound && isEligible;
+            const Result emptyResult;
+            const Result &result = roundIndex < static_cast<qsizetype>(player.results.size())
+                                       ? player.results[static_cast<std::size_t>(roundIndex)] : emptyResult;
+            for (int field = 0; field < 2; ++field)
             {
-                timeItem->setText(TimeFormat::format(*result.timeSeconds));
-                timeItem->setData(Qt::UserRole, *result.timeSeconds);
-            }
-            if (!showResult || !canEditResult)
-                setReadOnly(timeItem);
-            setItem(row, timeColumns[static_cast<std::size_t>(game)], timeItem);
+                const int column = roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)];
+                if (column < 0)
+                    continue;
 
-            auto *errorsItem = new QTableWidgetItem();
-            if (showResult && result.errors)
-                errorsItem->setText(QString::number(*result.errors));
-            if (!showResult || !canEditResult)
-                setReadOnly(errorsItem);
-            setItem(row, errorColumns[static_cast<std::size_t>(game)], errorsItem);
-        }
-
-        qint64 totalSeconds = 0;
-        qint64 totalErrors = 0;
-        bool hasPreliminaryTime = false;
-        for (int game = 0; game < 2; ++game)
-        {
-            const Result &result = player.results[static_cast<std::size_t>(game)];
-            if (result.timeSeconds)
-            {
-                totalSeconds += *result.timeSeconds;
-                totalErrors += result.errors.value_or(0);
-                hasPreliminaryTime = true;
+                auto *resultItem = new QTableWidgetItem();
+                if (field == 0 && result.timeSeconds)
+                {
+                    resultItem->setText(TimeFormat::format(*result.timeSeconds));
+                    resultItem->setData(Qt::UserRole, *result.timeSeconds);
+                }
+                else if (field == 1 && result.errors)
+                {
+                    resultItem->setText(QString::number(*result.errors));
+                }
+                if (!isEditableRound)
+                    setReadOnly(resultItem);
+                setItem(row, column, resultItem);
             }
         }
 
-        auto *totalTimeItem = new QTableWidgetItem();
-        if (hasPreliminaryTime)
-            totalTimeItem->setText(TimeFormat::format(totalSeconds));
-        setReadOnly(totalTimeItem);
-        setItem(row, TOTAL_TIME_COLUMN, totalTimeItem);
-
-        auto *totalErrorsItem = new QTableWidgetItem();
-        if (hasPreliminaryTime)
-            totalErrorsItem->setText(QString::number(totalErrors));
-        setReadOnly(totalErrorsItem);
-        setItem(row, TOTAL_ERRORS_COLUMN, totalErrorsItem);
-
-        if (isFinalist)
+        if (activeRound >= 0 && activeRound < rounds.size() &&
+            rounds.at(activeRound).rankingScope == RankingScope::Cumulative)
         {
-            for (int column = PLAYER_NAME_COLUMN; column < columnCount(); ++column)
+            for (int field = 0; field < 2; ++field)
             {
-                if (column != FINALS_SEPARATOR_COLUMN && item(row, column))
-                    item(row, column)->setBackground(QColor(210, 255, 210));
+                const int column = aggregateColumns_[static_cast<std::size_t>(field)];
+                if (column < 0)
+                    continue;
+                const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
+                qint64 total = 0;
+                bool complete = true;
+                for (int resultRound = 0; resultRound <= activeRound; ++resultRound)
+                {
+                    const RoundDefinition &round = rounds.at(resultRound);
+                    if (std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) == round.criteria.cend())
+                        continue;
+                    if (resultRound >= static_cast<int>(player.results.size()))
+                    {
+                        complete = false;
+                        break;
+                    }
+                    const Result &result = player.results[static_cast<std::size_t>(resultRound)];
+                    const std::optional<int> value = field == 0 ? result.timeSeconds : result.errors;
+                    if (!value)
+                    {
+                        complete = false;
+                        break;
+                    }
+                    total += *value;
+                }
+                auto *aggregateItem = new QTableWidgetItem();
+                if (complete)
+                    aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
+                setReadOnly(aggregateItem);
+                setItem(row, column, aggregateItem);
             }
         }
     }

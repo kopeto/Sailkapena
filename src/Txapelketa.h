@@ -9,31 +9,22 @@
 #include <vector>
 
 #include "Player.h"
+#include "TournamentFormat.h"
 
-class QButtonGroup;
 class QHBoxLayout;
+class QLabel;
 class QLineEdit;
 class QPushButton;
-class QRadioButton;
 class QVBoxLayout;
 class Taula;
 class CountdownWidget;
 class PublicWindow;
-
-enum class GameState
-{
-    GAME1,
-    GAME2,
-    GAME_FINAL
-};
 
 class Txapelketa : public QWidget
 {
     Q_OBJECT
 
 public:
-    static constexpr int FINALISTS_COUNT = 6;
-
     explicit Txapelketa(QWidget *parent = nullptr);
 
     bool saveToFile();
@@ -43,18 +34,24 @@ public:
 public slots:
     void addPlayer();
     void togglePublicWindow();
+    void editTournamentFormat();
 
 private slots:
     void updateTable();
     void recordTime(int playerId);
     void removePlayer(int playerId);
-    void updateResult(int playerId, int game, int field, const QString &value);
+    void updateResult(int playerId, int round, int field, const QString &value);
+    void finishCurrentRound();
 
 private:
     void refreshTable(bool sortByRanking = true);
-    std::vector<Player> preliminaryRanking() const;
-    std::vector<Player> currentDisplayOrder() const;
-    std::vector<int> finalistIds() const;
+    std::vector<Player> rankedEligiblePlayers(int round) const;
+    std::vector<int> eligiblePlayerIds(int round) const;
+    bool isResultComplete(const Player &player, int round) const;
+    int compareScores(const Player &left, const Player &right, int round) const;
+    bool hasTournamentResults() const;
+    void applyDefinition(const TournamentDefinition &definition);
+    void updateRoundControls();
     Player *findPlayer(int playerId);
     const Player *findPlayer(int playerId) const;
     void saveCheckpoint();
@@ -64,20 +61,23 @@ private:
     QPointer<Taula> table_;
     QPointer<CountdownWidget> timer_;
     QPointer<QVBoxLayout> mainLayout_;
-    QPointer<QButtonGroup> gameSelectorGroup_;
-    QPointer<QHBoxLayout> gameSelectorLayout_;
-    QPointer<QRadioButton> game1Button_;
-    QPointer<QRadioButton> game2Button_;
-    QPointer<QRadioButton> finalButton_;
+    QPointer<QHBoxLayout> roundControlLayout_;
+    QPointer<QPushButton> finishRoundButton_;
     QPointer<QPushButton> updateTableButton_;
     QPointer<QPushButton> addPlayerButton_;
+    QPointer<QPushButton> editFormatButton_;
+    QPointer<QLabel> currentRoundLabel_;
     QPointer<QLineEdit> playerNameInput_;
     QPointer<QHBoxLayout> playerInputLayout_;
     QPointer<PublicWindow> publicWindow_;
 
+    TournamentDefinition definition_;
     std::vector<Player> players_;
-    GameState currentGameState_{GameState::GAME1};
+    std::vector<std::vector<int>> qualifiedIdsByRound_;
+    int activeRoundIndex_{0};
+    bool tournamentFinished_{false};
     QString checkpointPath_;
+    QString legacyCheckpointPath_;
     bool checkpointFailureReported_{false};
 };
 

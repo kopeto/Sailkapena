@@ -3,8 +3,8 @@
 
 #include <QString>
 
-#include <array>
 #include <optional>
+#include <vector>
 
 struct Result
 {
@@ -21,7 +21,7 @@ public:
 
     int id{0};
     QString name;
-    std::array<Result, 3> results{};
+    std::vector<Result> results;
 };
 
 #endif // PLAYER_H

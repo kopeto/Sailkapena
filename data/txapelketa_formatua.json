@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "formatId": "sailkapena-estandarra",
+  "name": "Txapelketa estandarra",
+  "rounds": [
+    {
+      "id": "sailkapen-1",
+      "name": "Lehen txanda",
+      "durationMinutes": 5,
+      "criteria": ["errors", "time"],
+      "rankingScope": "round",
+      "tiePolicy": "includeTies",
+      "advanceCount": null
+    },
+    {
+      "id": "sailkapen-2",
+      "name": "Bigarren txanda",
+      "durationMinutes": 5,
+      "criteria": ["errors", "time"],
+      "rankingScope": "cumulative",
+      "tiePolicy": "includeTies",
+      "advanceCount": 6
+    },
+    {
+      "id": "finala",
+      "name": "Finala",
+      "durationMinutes": 5,
+      "criteria": ["errors", "time"],
+      "rankingScope": "round",
+      "tiePolicy": "includeTies"
+    }
+  ]
+}

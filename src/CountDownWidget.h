@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QPointer>
 #include <QTimer>
+#include <QString>
 #include <QWidget>
 
 class QHBoxLayout;
@@ -22,6 +23,7 @@ public:
     int getElapsedTime() const;
     bool hasStarted() const;
     void setPublicLabel(QLabel *label);
+    void configureRound(int durationMinutes, const QString &roundName);
 
     QPointer<QLabel> public_label;
 
@@ -43,6 +45,7 @@ private:
     QPointer<QLineEdit> inputField_;
     QPointer<QTimer> timer_;
     QPointer<QLabel> timerLabel_;
+    QPointer<QLabel> roundLabel_;
     QPointer<QVBoxLayout> mainLayout_;
     QPointer<QHBoxLayout> horizontalLayout_;
 };

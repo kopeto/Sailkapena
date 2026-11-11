@@ -43,6 +43,9 @@ CountdownWidget::CountdownWidget(QWidget *parent)
     hideShowToggleButton_->setMaximumWidth(200);
 
     timerLabel_ = new QLabel(this);
+    roundLabel_ = new QLabel(this);
+    roundLabel_->setAlignment(Qt::AlignCenter);
+    roundLabel_->setStyleSheet(QStringLiteral("font-size: 20px; font-weight: bold;"));
     QFont font("Arial");
     font.setStyleHint(QFont::SansSerif);
     font.setPointSize(150);
@@ -54,6 +57,7 @@ CountdownWidget::CountdownWidget(QWidget *parent)
     mainLayout_ = new QVBoxLayout(this);
     horizontalLayout_ = new QHBoxLayout();
     horizontalLayout_->setAlignment(Qt::AlignLeft);
+    mainLayout_->addWidget(roundLabel_);
     mainLayout_->addWidget(timerLabel_);
     mainLayout_->addLayout(horizontalLayout_);
     horizontalLayout_->addWidget(inputField_);
@@ -65,6 +69,27 @@ CountdownWidget::CountdownWidget(QWidget *parent)
     connect(startButton_, &QPushButton::clicked, this, &CountdownWidget::startCountdown);
     connect(setInitialValueButton_, &QPushButton::clicked, this, &CountdownWidget::setInitialValue);
     connect(hideShowToggleButton_, &QPushButton::clicked, this, &CountdownWidget::toggleHideShow);
+}
+
+void CountdownWidget::configureRound(int durationMinutes, const QString &roundName)
+{
+    if (durationMinutes < 1 || durationMinutes > 1440)
+        return;
+
+    timer_->stop();
+    elapsedClock_.invalidate();
+    hasStarted_ = false;
+    countdownSeconds_ = durationMinutes * 60;
+    remainingSeconds_ = countdownSeconds_;
+    inputField_->setText(QString::number(durationMinutes));
+    roundLabel_->setText(roundName);
+    setBlankBackground(timerLabel_);
+    setLabel(timerLabel_, remainingSeconds_);
+    if (public_label)
+    {
+        setBlankBackground(public_label);
+        setLabel(public_label, remainingSeconds_);
+    }
 }
 
 void CountdownWidget::setInitialValue()
@@ -85,7 +110,10 @@ void CountdownWidget::setInitialValue()
     setBlankBackground(timerLabel_);
     setLabel(timerLabel_, remainingSeconds_);
     if (public_label)
+    {
+        setBlankBackground(public_label);
         setLabel(public_label, remainingSeconds_);
+    }
 }
 
 void CountdownWidget::updateCountdown()
@@ -99,14 +127,20 @@ void CountdownWidget::updateCountdown()
     setBlankBackground(timerLabel_);
     setLabel(timerLabel_, remainingSeconds_);
     if (public_label)
+    {
+        setBlankBackground(public_label);
         setLabel(public_label, remainingSeconds_);
+    }
 
     if (elapsedMilliseconds >= static_cast<qint64>(countdownSeconds_) * 1000)
     {
         remainingSeconds_ = 0;
         setLabel(timerLabel_, 0);
         if (public_label)
+        {
+            setRedBackground(public_label);
             setLabel(public_label, 0);
+        }
         setRedBackground(timerLabel_);
         timer_->stop();
     }
@@ -126,7 +160,10 @@ void CountdownWidget::startCountdown()
     setBlankBackground(timerLabel_);
     setLabel(timerLabel_, remainingSeconds_);
     if (public_label)
+    {
+        setBlankBackground(public_label);
         setLabel(public_label, remainingSeconds_);
+    }
     timer_->start();
 }
 
