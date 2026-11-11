@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QHeaderView>
 #include <QFontMetrics>
+#include <QHash>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPaintEvent>
@@ -14,6 +15,7 @@
 #include <QSignalBlocker>
 #include <QStyle>
 #include <QStyleOptionHeader>
+#include <QStyledItemDelegate>
 #include <QTableWidgetItem>
 
 #include <algorithm>
@@ -98,6 +100,32 @@ private:
     std::vector<HeaderGroup> groups_;
 };
 
+class RoundColumnDelegate final : public QStyledItemDelegate
+{
+public:
+    explicit RoundColumnDelegate(QObject *parent = nullptr)
+        : QStyledItemDelegate(parent)
+    {
+    }
+
+    void setColumnBackgrounds(QHash<int, QColor> backgrounds)
+    {
+        backgrounds_ = std::move(backgrounds);
+    }
+
+protected:
+    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
+    {
+        QStyledItemDelegate::initStyleOption(option, index);
+        const auto background = backgrounds_.constFind(index.column());
+        if (background != backgrounds_.cend() && !(option->state & QStyle::State_Selected))
+            option->backgroundBrush = background.value();
+    }
+
+private:
+    QHash<int, QColor> backgrounds_;
+};
+
 void setReadOnly(QTableWidgetItem *item)
 {
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -108,6 +136,7 @@ Taula::Taula(QWidget *parent)
     : QTableWidget(parent)
 {
     setHorizontalHeader(new GroupedHeaderView(this));
+    setItemDelegate(new RoundColumnDelegate(this));
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setAlternatingRowColors(true);
@@ -148,6 +177,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     cutColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     std::vector<HeaderGroup> headerGroups;
+    QHash<int, QColor> roundColumnBackgrounds;
 
     QStringList headers{QString(), tr("Jokalaria")};
     int nextColumn = 2;
@@ -155,11 +185,13 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
-        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(232, 241, 249) : QColor(255, 255, 255);
+        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(224, 238, 252) : QColor(255, 255, 255);
         for (int field = 0; field < 2; ++field)
         {
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
             headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
+            if (roundIndex % 2 == 0)
+                roundColumnBackgrounds.insert(nextColumn - 1, roundBackground);
         }
         headerGroups.push_back({firstColumn, nextColumn - 1, round.name, roundBackground});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
@@ -179,6 +211,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
         for (int column = group.firstColumn; column <= group.lastColumn; ++column)
             model()->setHeaderData(column, Qt::Horizontal, group.background, Qt::BackgroundRole);
     }
+    static_cast<RoundColumnDelegate *>(itemDelegate())->setColumnBackgrounds(std::move(roundColumnBackgrounds));
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
@@ -233,7 +266,6 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
-                resultItem->setBackground(roundIndex % 2 == 0 ? QColor(232, 241, 249) : QColor(255, 255, 255));
                 if (!isEditableRound)
                     setReadOnly(resultItem);
                 setItem(row, column, resultItem);
