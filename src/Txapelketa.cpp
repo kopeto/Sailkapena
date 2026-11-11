@@ -86,15 +86,13 @@ Txapelketa::Txapelketa(QWidget *parent)
     roundSelector_->setMinimumWidth(220);
 
     finishRoundButton_ = new QPushButton(this);
-    updateTableButton_ = new QPushButton(tr("Sailkapena eguneratu"), this);
-    editFormatButton_ = new QPushButton(tr("Txapelketaren formatua editatu"), this);
+    updateTableButton_ = new QPushButton(tr("Eguneratu"), this);
     roundControlLayout_ = new QHBoxLayout();
     roundControlLayout_->setAlignment(Qt::AlignLeft);
     roundControlLayout_->addWidget(currentRoundLabel_);
     roundControlLayout_->addWidget(roundSelector_);
     roundControlLayout_->addWidget(finishRoundButton_);
     roundControlLayout_->addWidget(updateTableButton_);
-    roundControlLayout_->addWidget(editFormatButton_);
 
     addPlayerButton_ = new QPushButton(tr("Jokalaria gehitu"), this);
     playerNameInput_ = new QLineEdit(this);
@@ -112,7 +110,6 @@ Txapelketa::Txapelketa(QWidget *parent)
     connect(finishRoundButton_, &QPushButton::clicked, this, &Txapelketa::finishCurrentRound);
     connect(roundSelector_, &QComboBox::currentIndexChanged, this, &Txapelketa::selectRound);
     connect(updateTableButton_, &QPushButton::clicked, this, &Txapelketa::updateTable);
-    connect(editFormatButton_, &QPushButton::clicked, this, &Txapelketa::editTournamentFormat);
     connect(addPlayerButton_, &QPushButton::clicked, this, &Txapelketa::addPlayer);
     connect(playerNameInput_, &QLineEdit::returnPressed, this, &Txapelketa::addPlayer);
     connect(timer_, &CountdownWidget::publicDisplayToggleRequested, this, &Txapelketa::togglePublicWindow);
@@ -238,10 +235,7 @@ void Txapelketa::removePlayer(int playerId)
 void Txapelketa::updateResult(int playerId, int round, int field, const QString &value)
 {
     Player *player = findPlayer(playerId);
-    if (!player || tournamentFinished_ || round != activeRoundIndex_ || round < 0 || round >= definition_.rounds.size())
-        return;
-    const std::vector<int> eligibleIds = eligiblePlayerIds(round);
-    if (std::find(eligibleIds.cbegin(), eligibleIds.cend(), playerId) == eligibleIds.cend())
+    if (!player || round < 0 || round >= definition_.rounds.size() || round >= static_cast<int>(player->results.size()))
         return;
     const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
     if ((field != 0 && field != 1) || !roundHasCriterion(definition_.rounds.at(round), criterion))
@@ -307,16 +301,6 @@ void Txapelketa::finishCurrentRound()
         showBasqueMessage(this, QMessageBox::Information, tr("Txanda amaitu"),
                           tr("Txanda honetan ez dago jokalaririk."));
         return;
-    }
-    for (int playerId : eligibleIds)
-    {
-        const Player *player = findPlayer(playerId);
-        if (!player || !isResultComplete(*player, activeRoundIndex_))
-        {
-            showBasqueMessage(this, QMessageBox::Warning, tr("Emaitzak falta dira"),
-                              tr("Jokalari guztien emaitzak osatu behar dira txanda itxi aurretik."));
-            return;
-        }
     }
 
     if (activeRoundIndex_ == definition_.rounds.size() - 1)

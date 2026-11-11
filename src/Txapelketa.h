@@ -67,7 +67,6 @@ private:
     QPointer<QPushButton> finishRoundButton_;
     QPointer<QPushButton> updateTableButton_;
     QPointer<QPushButton> addPlayerButton_;
-    QPointer<QPushButton> editFormatButton_;
     QPointer<QLabel> currentRoundLabel_;
     QPointer<QComboBox> roundSelector_;
     QPointer<QLineEdit> playerNameInput_;

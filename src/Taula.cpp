@@ -274,7 +274,6 @@ void Taula::setPlayers(const std::vector<Player> &players,
 
         for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
         {
-            const bool isEditableRound = allowEditing && static_cast<int>(roundIndex) == activeRound && isEligible;
             const Result emptyResult;
             const Result &result = roundIndex < static_cast<qsizetype>(player.results.size())
                                        ? player.results[static_cast<std::size_t>(roundIndex)] : emptyResult;
@@ -294,8 +293,6 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
-                if (!isEditableRound)
-                    setReadOnly(resultItem);
                 setItem(row, column, resultItem);
             }
         }
