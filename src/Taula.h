@@ -36,7 +36,7 @@ protected:
 
 private:
     std::vector<std::array<int, 2>> roundColumns_;
-    std::array<int, 2> aggregateColumns_{{-1, -1}};
+    std::vector<std::array<int, 2>> cutColumns_;
 };
 
 #endif // TAULA_H

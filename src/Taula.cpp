@@ -144,7 +144,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     setSortingEnabled(false);
     clearContents();
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
-    aggregateColumns_ = {{-1, -1}};
+    cutColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     std::vector<HeaderGroup> headerGroups;
 
     QStringList headers{QString(), tr("Jokalaria")};
@@ -161,15 +161,15 @@ void Taula::setPlayers(const std::vector<Player> &players,
         }
         headerGroups.push_back({firstColumn, nextColumn - 1,
                                 tr("Txanda %1 — %2").arg(roundIndex + 1).arg(round.name)});
-    }
-    if (activeRound >= 0 && activeRound < rounds.size() &&
-        rounds.at(activeRound).rankingScope == RankingScope::Cumulative)
-    {
-        for (ResultCriterion criterion : rounds.at(activeRound).criteria)
+        if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
-            const int field = criterion == ResultCriterion::Time ? 0 : 1;
-            aggregateColumns_[static_cast<std::size_t>(field)] = nextColumn++;
-            headers.append(tr("Metatua: %1").arg(criterionName(criterion)));
+            const int cutFirstColumn = nextColumn;
+            cutColumns_[static_cast<std::size_t>(roundIndex)][0] = nextColumn++;
+            headers.append(tr("Denbora metatua"));
+            cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
+            headers.append(tr("Akatsak metatuak"));
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1,
+                                    tr("%1. txandako ebaketa").arg(roundIndex + 1)});
         }
     }
     setColumnCount(nextColumn);
@@ -228,28 +228,31 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
+                if (roundIndex % 2 == 0)
+                    resultItem->setBackground(QColor(245, 248, 252));
                 if (!isEditableRound)
                     setReadOnly(resultItem);
                 setItem(row, column, resultItem);
             }
         }
 
-        if (activeRound >= 0 && activeRound < rounds.size() &&
-            rounds.at(activeRound).rankingScope == RankingScope::Cumulative)
+        for (qsizetype cutRound = 0; cutRound < rounds.size(); ++cutRound)
         {
             for (int field = 0; field < 2; ++field)
             {
-                const int column = aggregateColumns_[static_cast<std::size_t>(field)];
+                const int column = cutColumns_[static_cast<std::size_t>(cutRound)][static_cast<std::size_t>(field)];
                 if (column < 0)
                     continue;
                 const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
                 qint64 total = 0;
                 bool complete = true;
-                for (int resultRound = 0; resultRound <= activeRound; ++resultRound)
+                bool hasScoredRound = false;
+                for (int resultRound = 0; resultRound <= cutRound; ++resultRound)
                 {
                     const RoundDefinition &round = rounds.at(resultRound);
                     if (std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) == round.criteria.cend())
                         continue;
+                    hasScoredRound = true;
                     if (resultRound >= static_cast<int>(player.results.size()))
                     {
                         complete = false;
@@ -265,8 +268,9 @@ void Taula::setPlayers(const std::vector<Player> &players,
                     total += *value;
                 }
                 auto *aggregateItem = new QTableWidgetItem();
-                if (complete)
+                if (complete && hasScoredRound)
                     aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
+                aggregateItem->setBackground(QColor(250, 249, 241));
                 setReadOnly(aggregateItem);
                 setItem(row, column, aggregateItem);
             }

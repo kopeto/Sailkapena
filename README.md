@@ -44,7 +44,7 @@ JSONen arauak:
 
 Txanda ixteko, parte-hartzaile hautagarri guztien irizpide-emaitzak osatu behar dira. Itxitako txandako emaitzak eta hurrengoan pasatutako jokalariak saioan gordetzen dira; emaitzak ez dira automatikoki berriz sailkatzen geroagoko txandetan.
 
-Sailkapen metatuan, taulak metatutako denbora edo akatsak ere erakusten ditu, sailkapenaren oinarria ikusgai egon dadin.
+Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak ebaketa horretara arteko denbora eta akats metatuak erakusten ditu. Denek aurrera egiten duten txandetan ez da ebaketa-zutaberik gehitzen.
 
 ## Emaitzak gorde eta esportatzea
 
