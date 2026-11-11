@@ -14,7 +14,6 @@
 
 class QHBoxLayout;
 class QLabel;
-class QLineEdit;
 class QPushButton;
 class QVBoxLayout;
 class Taula;
@@ -33,7 +32,7 @@ public:
     bool exportToCsv();
 
 public slots:
-    void addPlayer();
+    void addPlayers();
     void togglePublicWindow();
     void editTournamentFormat();
 
@@ -67,11 +66,8 @@ private:
     QPointer<QHBoxLayout> roundControlLayout_;
     QPointer<QPushButton> finishRoundButton_;
     QPointer<QPushButton> updateTableButton_;
-    QPointer<QPushButton> addPlayerButton_;
     QPointer<QLabel> currentRoundLabel_;
     QPointer<QComboBox> roundSelector_;
-    QPointer<QLineEdit> playerNameInput_;
-    QPointer<QHBoxLayout> playerInputLayout_;
     QPointer<PublicWindow> publicWindow_;
 
     TournamentDefinition definition_;

@@ -24,9 +24,11 @@
 #include <QListWidgetItem>
 #include <QLocale>
 #include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSaveFile>
+#include <QSet>
 #include <QSignalBlocker>
 #include <QStandardItemModel>
 #include <QSpinBox>
@@ -95,24 +97,14 @@ Txapelketa::Txapelketa(QWidget *parent)
     roundControlLayout_->addWidget(finishRoundButton_);
     roundControlLayout_->addWidget(updateTableButton_);
 
-    addPlayerButton_ = new QPushButton(tr("Jokalaria gehitu"), this);
-    playerNameInput_ = new QLineEdit(this);
-    playerNameInput_->setPlaceholderText(tr("Jokalariaren izena"));
-    playerInputLayout_ = new QHBoxLayout();
-    playerInputLayout_->addWidget(addPlayerButton_);
-    playerInputLayout_->addWidget(playerNameInput_);
-
     mainLayout_ = new QVBoxLayout(this);
     mainLayout_->addWidget(timer_);
     mainLayout_->addLayout(roundControlLayout_);
-    mainLayout_->addLayout(playerInputLayout_);
     mainLayout_->addWidget(table_);
 
     connect(finishRoundButton_, &QPushButton::clicked, this, &Txapelketa::finishCurrentRound);
     connect(roundSelector_, &QComboBox::currentIndexChanged, this, &Txapelketa::selectRound);
     connect(updateTableButton_, &QPushButton::clicked, this, &Txapelketa::updateTable);
-    connect(addPlayerButton_, &QPushButton::clicked, this, &Txapelketa::addPlayer);
-    connect(playerNameInput_, &QLineEdit::returnPressed, this, &Txapelketa::addPlayer);
     connect(timer_, &CountdownWidget::publicDisplayToggleRequested, this, &Txapelketa::togglePublicWindow);
     connect(table_, &Taula::recordTimeRequested, this, &Txapelketa::recordTime);
     connect(table_, &Taula::editPlayerNameRequested, this, &Txapelketa::editPlayerName);
@@ -143,35 +135,78 @@ Txapelketa::Txapelketa(QWidget *parent)
         loadFromFile_(checkpointToRestore);
 }
 
-void Txapelketa::addPlayer()
+void Txapelketa::addPlayers()
 {
-    const QString name = playerNameInput_->text().trimmed();
-    if (name.isEmpty())
+    if (tournamentFinished_ || activeRoundIndex_ != 0)
     {
-        showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria gehitu"), tr("Idatzi jokalariaren izena."));
-        return;
-    }
-    if (name.contains(QLatin1Char('\n')) || name.contains(QLatin1Char('\r')))
-    {
-        showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria gehitu"),
-                          tr("Izenak ezin du lerro-jauzirik izan."));
-        return;
-    }
-    const auto duplicate = std::find_if(players_.cbegin(), players_.cend(), [&name](const Player &player) {
-        return player.name.compare(name, Qt::CaseInsensitive) == 0;
-    });
-    if (duplicate != players_.cend())
-    {
-        showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria gehitu"), tr("Izen hori duen jokalaria badago jada."));
+        showBasqueMessage(this, QMessageBox::Information, tr("Jokalariak gehitu"),
+                          tr("Jokalariak lehen txanda hasi aurretik bakarrik gehitu daitezke."));
         return;
     }
 
-    Player player(name);
-    player.results.resize(static_cast<std::size_t>(definition_.rounds.size()));
-    players_.push_back(std::move(player));
-    playerNameInput_->clear();
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Jokalariak gehitu"));
+    dialog.resize(560, 420);
+    auto *layout = new QVBoxLayout(&dialog);
+    layout->addWidget(new QLabel(tr("Idatzi edo itsatsi jokalari baten izena lerro bakoitzean:"), &dialog));
+    auto *namesInput = new QPlainTextEdit(&dialog);
+    namesInput->setPlaceholderText(tr("Jokalari bat lerro bakoitzean"));
+    layout->addWidget(namesInput, 1);
+
+    auto *buttons = new QDialogButtonBox(&dialog);
+    auto *addButton = buttons->addButton(tr("Jokalariak gehitu"), QDialogButtonBox::AcceptRole);
+    auto *cancelButton = buttons->addButton(tr("Utzi"), QDialogButtonBox::RejectRole);
+    layout->addWidget(buttons);
+    connect(addButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    connect(cancelButton, &QPushButton::clicked, &dialog, &QDialog::reject);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    QSet<QString> knownNames;
+    for (const Player &player : players_)
+        knownNames.insert(player.name.toCaseFolded());
+
+    int addedCount = 0;
+    int duplicateCount = 0;
+    const QStringList names = namesInput->toPlainText().split(QLatin1Char('\n'));
+    for (const QString &line : names)
+    {
+        const QString name = line.trimmed();
+        if (name.isEmpty())
+            continue;
+
+        const QString normalizedName = name.toCaseFolded();
+        if (knownNames.contains(normalizedName))
+        {
+            ++duplicateCount;
+            continue;
+        }
+        knownNames.insert(normalizedName);
+
+        Player player(name);
+        player.results.resize(static_cast<std::size_t>(definition_.rounds.size()));
+        players_.push_back(std::move(player));
+        ++addedCount;
+    }
+
+    if (addedCount == 0)
+    {
+        showBasqueMessage(this, QMessageBox::Information, tr("Jokalariak gehitu"),
+                          duplicateCount > 0 ? tr("Izen guztiak badaude dagoeneko.")
+                                             : tr("Idatzi gutxienez jokalari baten izena."));
+        return;
+    }
+
     refreshTable();
     saveCheckpoint();
+    QString summary = tr("%1 jokalari gehitu dira.").arg(addedCount);
+    if (duplicateCount > 0)
+    {
+        summary += QLatin1Char('\n');
+        summary += tr("%1 izen bikoiztu baztertu dira.").arg(duplicateCount);
+    }
+    showBasqueMessage(this, QMessageBox::Information, tr("Jokalariak gehitu"), summary);
 }
 
 void Txapelketa::updateTable()
@@ -896,9 +931,6 @@ void Txapelketa::updateRoundControls()
     else
         finishRoundButton_->setText(tr("Txanda itxi eta hurrengora pasa"));
     finishRoundButton_->setEnabled(!tournamentFinished_);
-    const bool canAddPlayers = !tournamentFinished_ && activeRoundIndex_ == 0;
-    addPlayerButton_->setEnabled(canAddPlayers);
-    playerNameInput_->setEnabled(canAddPlayers);
 }
 
 void Txapelketa::selectRound(int roundIndex)

@@ -9,6 +9,7 @@ MainWindow::MainWindow()
     showMaximized();
 
     QMenu *fileMenu = menuBar()->addMenu(tr("&Fitxategia"));
+    QMenu *playersMenu = menuBar()->addMenu(tr("&Jokalariak"));
     QMenu *viewMenu = menuBar()->addMenu(tr("&Ikusi"));
     QMenu *helpMenu = menuBar()->addMenu(tr("&Laguntza"));
 
@@ -29,6 +30,10 @@ MainWindow::MainWindow()
     fileMenu->addAction(formatAction);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
+
+    QAction *addPlayersAction = new QAction(tr("Jokalariak gehitu..."), this);
+    connect(addPlayersAction, &QAction::triggered, txapelketa, &Txapelketa::addPlayers);
+    playersMenu->addAction(addPlayersAction);
 
     QAction *publicWindowAction = new QAction(tr("Pantaila publikoa erakutsi/ezkutatu"), this);
     connect(publicWindowAction, &QAction::triggered, this, &MainWindow::pantailaPublikoaErakutsi);
