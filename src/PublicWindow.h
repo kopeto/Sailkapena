@@ -4,14 +4,18 @@
 #include <QWidget>
 #include <QLabel>
 
+class QVBoxLayout;
+
 class PublicWindow : public QWidget
 {
     Q_OBJECT
 public:
-    PublicWindow();
-    ~PublicWindow();
+    explicit PublicWindow(QWidget *parent = nullptr);
+    QLabel *timerLabel() const;
 
-    QLabel *timerlabel;
+private:
+    QLabel *timerLabel_;
+    QVBoxLayout *layout_;
 };
 
 #endif

@@ -1,4 +1,7 @@
 
+#ifndef SETLABEL_H
+#define SETLABEL_H
+
 #include <QLabel>
 #include <QPointer>
 #include <QColor>
@@ -29,3 +32,5 @@ static void setBlankBackground(QPointer<QLabel> label)
 {
     setLabelBackground(label, QColor(Qt::transparent));
 }
+
+#endif // SETLABEL_H

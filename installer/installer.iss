@@ -32,12 +32,7 @@ ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequiredOverridesAllowed=dialog
 
 [Languages]
-; Name: "english"; MessagesFile: "compiler:Default.isl"
-; Basque (Euskera) is a community translation - not bundled with Inno Setup.
-; Download Basque.isl from https://jrsoftware.org/files/istrans/
-; and place it in: <Inno Setup install dir>\Languages\Basque.isl
-; Then uncomment the line below:
-Name: "basque"; MessagesFile: "compiler:Languages\Basque.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";    GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

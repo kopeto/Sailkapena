@@ -4,22 +4,11 @@
 
 #include <QApplication>
 #include <QMainWindow>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QTimer>
-
+#include <QAction>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
-
-#include <stdlib.h>
-#include <iostream>
-
 #include <QPointer>
-#include <QPushButton>
-#include <QLineEdit>
-#include <QHBoxLayout>
 
 #include "Txapelketa.h"
 #include "Taula.h"
@@ -42,7 +31,11 @@ private slots:
 
     inline void about()
     {
-        QMessageBox::about(this, "SailkapenaHG", "Zer jakin nahi duk?");
+        QMessageBox message(QMessageBox::Information, tr("SailkapenaHG"),
+                            tr("Lehiaketako emaitzak eta sailkapena kudeatzeko aplikazioa."),
+                            QMessageBox::NoButton, this);
+        message.addButton(tr("Ados"), QMessageBox::AcceptRole);
+        message.exec();
     }
 
     inline void taulaGorde()
@@ -50,14 +43,19 @@ private slots:
         txapelketa->saveToFile();
     }
 
-    inline void taulaExceleratu()
+    inline void taulaCsvraEsportatu()
     {
-        txapelketa->saveToExcel();
+        txapelketa->exportToCsv();
     }
 
     inline void taulaIreki()
     {
         txapelketa->loadFromFile();
+    }
+
+    inline void pantailaPublikoaErakutsi()
+    {
+        txapelketa->togglePublicWindow();
     }
 };
 

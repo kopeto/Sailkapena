@@ -1,22 +1,25 @@
 #include "PublicWindow.h"
 
-PublicWindow::PublicWindow() : QWidget()
+#include <QFont>
+#include <QVBoxLayout>
+
+PublicWindow::PublicWindow(QWidget *parent)
+    : QWidget(parent, Qt::Window), timerLabel_(new QLabel(this)), layout_(new QVBoxLayout(this))
 {
-    setWindowTitle("SailkapenaHG");
-    resize(300, 200);
+    setWindowTitle(tr("Pantaila publikoa - SailkapenaHG"));
+    resize(800, 360);
 
-    timerlabel = new QLabel();
-    {
-        QFont f("Arial");
-        f.setStyleHint(QFont::SansSerif); // fallback to system sans-serif on Linux
-        f.setPointSize(400);
-        timerlabel->setFont(f);
-    }
-    timerlabel->setTextFormat(Qt::RichText); 
-    timerlabel->setAlignment(Qt::AlignCenter);
-
+    QFont font("Arial");
+    font.setStyleHint(QFont::SansSerif);
+    font.setPointSize(150);
+    timerLabel_->setFont(font);
+    timerLabel_->setAlignment(Qt::AlignCenter);
+    timerLabel_->setTextFormat(Qt::RichText);
+    timerLabel_->setText("00:00");
+    layout_->addWidget(timerLabel_);
 }
 
-PublicWindow::~PublicWindow()
+QLabel *PublicWindow::timerLabel() const
 {
+    return timerLabel_;
 }

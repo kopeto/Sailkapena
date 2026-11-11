@@ -1,47 +1,50 @@
 #ifndef COUNTDOWNWIDGET_H
 #define COUNTDOWNWIDGET_H
 
+#include <QElapsedTimer>
 #include <QLabel>
-#include <QTimer>
-#include <QVBoxLayout>
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QStyle>
 #include <QPointer>
-#include <QDebug>
+#include <QTimer>
+#include <QWidget>
+
+class QHBoxLayout;
+class QLineEdit;
+class QPushButton;
+class QVBoxLayout;
 
 class CountdownWidget : public QWidget
 {
     Q_OBJECT
+
 public:
-    CountdownWidget(QWidget *parent = nullptr);
-    ~CountdownWidget() = default;
+    explicit CountdownWidget(QWidget *parent = nullptr);
 
-    void setInitialValue(QLineEdit *input);
-    int getElapsedTime();
+    int getElapsedTime() const;
+    bool hasStarted() const;
+    void setPublicLabel(QLabel *label);
 
-    QLabel* public_label{nullptr};
+    QPointer<QLabel> public_label;
 
 private slots:
     void updateCountdown();
     void startCountdown();
+    void setInitialValue();
     void toggleHideShow();
 
 private:
-    int countdown_seconds_{0};
-    int remaining_seconds_{0};
+    int countdownSeconds_{0};
+    int remainingSeconds_{0};
+    bool hasStarted_{false};
+    QElapsedTimer elapsedClock_;
 
-    /* Interface Widgets */
-    QPointer<QPushButton> start_BTN;    //  QPushButton *start_BTN;
-    QPointer<QPushButton> setInitialValue_BTN; //  QPushButton *setInitialValue_BTN;
-    QPointer<QPushButton> hideShowToggle_BTN; 
-    QPointer<QLineEdit> input_field_;          //  QLineEdit *input_field_;
-    QPointer<QTimer> timer_;                   //  QTimer *timer_;
-    QPointer<QLabel> timer_Label;              //  QLabel *label_;
-
-    QPointer<QVBoxLayout> main_layout;
-    QPointer<QHBoxLayout> layout_h;
+    QPointer<QPushButton> startButton_;
+    QPointer<QPushButton> setInitialValueButton_;
+    QPointer<QPushButton> hideShowToggleButton_;
+    QPointer<QLineEdit> inputField_;
+    QPointer<QTimer> timer_;
+    QPointer<QLabel> timerLabel_;
+    QPointer<QVBoxLayout> mainLayout_;
+    QPointer<QHBoxLayout> horizontalLayout_;
 };
 
 #endif // COUNTDOWNWIDGET_H

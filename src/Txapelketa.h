@@ -1,25 +1,24 @@
 #ifndef TXAPELKETA_H
 #define TXAPELKETA_H
 
-#include <QObject>
-#include <QDebug>
 #include <QPointer>
-#include <QStandardItemModel>
-#include <QRadioButton>
-#include <QButtonGroup>
-#include <QString>
-#include <QVBoxLayout>
-#include <QWindow>
-#include <QLineEdit>
 #include <QStandardPaths>
+#include <QString>
+#include <QWidget>
 
 #include <vector>
 
 #include "Player.h"
-#include "PublicWindow.h"
 
+class QButtonGroup;
+class QHBoxLayout;
+class QLineEdit;
+class QPushButton;
+class QRadioButton;
+class QVBoxLayout;
 class Taula;
 class CountdownWidget;
+class PublicWindow;
 
 enum class GameState
 {
@@ -32,65 +31,54 @@ class Txapelketa : public QWidget
 {
     Q_OBJECT
 
-static constexpr int FINALISTS_COUNT = 6;
-
 public:
+    static constexpr int FINALISTS_COUNT = 6;
 
-    Txapelketa(QWidget *parent = nullptr);
-    ~Txapelketa() = default;
+    explicit Txapelketa(QWidget *parent = nullptr);
 
-    QPointer<Taula> taula;
-    QPointer<QVBoxLayout> mainLayout;
-    QPointer<CountdownWidget> timer;
-
-    /* Interface components */
-    /* game selector */
-    QPointer<QButtonGroup> GameSelectorGroup;
-    QPointer<QHBoxLayout> GameSelectorLayout;
-    QPointer<QRadioButton> game_1;
-    QPointer<QRadioButton> game_2;
-    QPointer<QRadioButton> game_final;
-
-    QPointer<QPushButton> updateTable_BTN;
-    QPointer<QPushButton> addPlayer_BTN; //  QPushButton *setInitialValue_BTN;
-    QPointer<QLineEdit> input_player_name;
-    QPointer<QHBoxLayout> layout_h;
-    QPointer<QHBoxLayout> layout_table;
-
-    // // solution image
-    // QPointer<QLabel> image_label;
-    // QPixmap *image_pixmap;
-
-    /**
-     * Public window
-     */
-    // QPointer<PublicWindow> publicwindow;
-
-    std::vector<Player> Players;
-
-    void printPlayers();
-
-    void updateTable();
-    std::pair<int, int> getCurrentGameColumns();
-
-    /* IO read write functions */
     bool saveToFile();
     bool loadFromFile();
-    bool saveToExcel();
+    bool exportToCsv();
 
 public slots:
-    void deletePlayer(const QString &name);
-    void addPlayerNamed(const QString& name);
     void addPlayer();
+    void togglePublicWindow();
 
-    // void setTime(const Player  &player);
-    void setTime(const QString &name);
+private slots:
+    void updateTable();
+    void recordTime(int playerId);
+    void removePlayer(int playerId);
+    void updateResult(int playerId, int game, int field, const QString &value);
 
 private:
-    void checkDraws_();
-    bool saveToFile_( const QString& filePath );
-    QString _tmpResultsFilePath{QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/txapelketa_results.tmp"};
-    GameState currentGameState{GameState::GAME1};
+    void refreshTable(bool sortByRanking = true);
+    std::vector<Player> preliminaryRanking() const;
+    std::vector<Player> currentDisplayOrder() const;
+    std::vector<int> finalistIds() const;
+    Player *findPlayer(int playerId);
+    const Player *findPlayer(int playerId) const;
+    void saveCheckpoint();
+    bool loadFromFile_(const QString &filePath);
+    bool saveToFile_(const QString &filePath) const;
+
+    QPointer<Taula> table_;
+    QPointer<CountdownWidget> timer_;
+    QPointer<QVBoxLayout> mainLayout_;
+    QPointer<QButtonGroup> gameSelectorGroup_;
+    QPointer<QHBoxLayout> gameSelectorLayout_;
+    QPointer<QRadioButton> game1Button_;
+    QPointer<QRadioButton> game2Button_;
+    QPointer<QRadioButton> finalButton_;
+    QPointer<QPushButton> updateTableButton_;
+    QPointer<QPushButton> addPlayerButton_;
+    QPointer<QLineEdit> playerNameInput_;
+    QPointer<QHBoxLayout> playerInputLayout_;
+    QPointer<PublicWindow> publicWindow_;
+
+    std::vector<Player> players_;
+    GameState currentGameState_{GameState::GAME1};
+    QString checkpointPath_;
+    bool checkpointFailureReported_{false};
 };
 
 #endif // TXAPELKETA_H

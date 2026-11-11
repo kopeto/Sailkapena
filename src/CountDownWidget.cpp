@@ -1,116 +1,165 @@
 #include "CountDownWidget.h"
 
+#include "TimeFormat.h"
 #include "setLabel.h"
 
-CountdownWidget::CountdownWidget(QWidget* parent) : QWidget(parent)
+#include <QAbstractButton>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QIntValidator>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+
+#include <algorithm>
+
+namespace
 {
-    timer_ = new QTimer(this);
-
-    /* Inputs */
-    input_field_ = new QLineEdit("");
-    input_field_->setMaximumWidth(100);
-    input_field_->setPlaceholderText("");
-    /* Buttons */
-    start_BTN = new QPushButton("Hasi");
-    start_BTN->setMaximumWidth(150);
-    setInitialValue_BTN = new QPushButton("Berritu");
-    setInitialValue_BTN->setMaximumWidth(150);
-    hideShowToggle_BTN = new QPushButton("Azaldu/Ezkutatu");
-    hideShowToggle_BTN->setMaximumWidth(200);
-
-    /* Labels */
-    timer_Label = new QLabel();
-    {
-        QFont f("Arial");
-        f.setStyleHint(QFont::SansSerif); // fallback to system sans-serif on Linux
-        f.setPointSize(150);
-        timer_Label->setFont(f);
-    }
-    timer_Label->setTextFormat(Qt::RichText); 
-    timer_Label->setAlignment(Qt::AlignCenter);
-    setLabel(timer_Label, 0);
-
-    /* Layouts */
-    main_layout = new QVBoxLayout(this);
-    layout_h = new QHBoxLayout(this);
-    layout_h->setAlignment(Qt::AlignLeft);
-    main_layout->addWidget(timer_Label);
-    main_layout->addLayout(layout_h);
-    layout_h->addWidget(input_field_);
-    layout_h->addWidget(setInitialValue_BTN);
-    layout_h->addWidget(start_BTN);
-    layout_h->addWidget(hideShowToggle_BTN);
-
-    /* Connections */
-    connect(timer_, &QTimer::timeout, this, &CountdownWidget::updateCountdown);
-    connect(start_BTN, &QPushButton::clicked, this, &CountdownWidget::startCountdown);
-    connect(setInitialValue_BTN, &QPushButton::clicked, this, std::bind(&CountdownWidget::setInitialValue, this, input_field_));
-    connect(hideShowToggle_BTN, &QPushButton::clicked, this, &CountdownWidget::toggleHideShow);
+void showInformation(QWidget *parent, const QString &title, const QString &text)
+{
+    QMessageBox message(QMessageBox::Information, title, text, QMessageBox::NoButton, parent);
+    message.addButton(QObject::tr("Ados"), QMessageBox::AcceptRole);
+    message.exec();
+}
 }
 
-void CountdownWidget::setInitialValue(QLineEdit *input)
+CountdownWidget::CountdownWidget(QWidget *parent)
+    : QWidget(parent)
 {
-    setBlankBackground(timer_Label);
-    bool ok;
-    int mins = input->text().toInt(&ok);
-    if (!ok)
+    timer_ = new QTimer(this);
+    timer_->setInterval(100);
+
+    inputField_ = new QLineEdit(this);
+    inputField_->setMaximumWidth(100);
+    inputField_->setPlaceholderText(tr("Minutuak"));
+    inputField_->setValidator(new QIntValidator(1, 1440, inputField_));
+
+    startButton_ = new QPushButton(tr("Hasi"), this);
+    startButton_->setMaximumWidth(150);
+    setInitialValueButton_ = new QPushButton(tr("Ezarri denbora"), this);
+    setInitialValueButton_->setMaximumWidth(150);
+    hideShowToggleButton_ = new QPushButton(tr("Erakutsi/Ezkutatu"), this);
+    hideShowToggleButton_->setMaximumWidth(200);
+
+    timerLabel_ = new QLabel(this);
+    QFont font("Arial");
+    font.setStyleHint(QFont::SansSerif);
+    font.setPointSize(150);
+    timerLabel_->setFont(font);
+    timerLabel_->setTextFormat(Qt::RichText);
+    timerLabel_->setAlignment(Qt::AlignCenter);
+    setLabel(timerLabel_, 0);
+
+    mainLayout_ = new QVBoxLayout(this);
+    horizontalLayout_ = new QHBoxLayout();
+    horizontalLayout_->setAlignment(Qt::AlignLeft);
+    mainLayout_->addWidget(timerLabel_);
+    mainLayout_->addLayout(horizontalLayout_);
+    horizontalLayout_->addWidget(inputField_);
+    horizontalLayout_->addWidget(setInitialValueButton_);
+    horizontalLayout_->addWidget(startButton_);
+    horizontalLayout_->addWidget(hideShowToggleButton_);
+
+    connect(timer_, &QTimer::timeout, this, &CountdownWidget::updateCountdown);
+    connect(startButton_, &QPushButton::clicked, this, &CountdownWidget::startCountdown);
+    connect(setInitialValueButton_, &QPushButton::clicked, this, &CountdownWidget::setInitialValue);
+    connect(hideShowToggleButton_, &QPushButton::clicked, this, &CountdownWidget::toggleHideShow);
+}
+
+void CountdownWidget::setInitialValue()
+{
+    bool valid = false;
+    const int minutes = inputField_->text().toInt(&valid);
+    if (!valid || minutes < 1 || minutes > 1440)
     {
-        countdown_seconds_ = 0;
-        setLabel(timer_Label, 0);
-        if(public_label)
-            setLabel(public_label, 0);
-        timer_->stop();
+        showInformation(this, tr("Kronometroa"), tr("Sartu 1 eta 1440 arteko minutu kopurua."));
         return;
     }
 
-    countdown_seconds_ = mins * 60;
-    setLabel(timer_Label, countdown_seconds_);
-    if(public_label)
-            setLabel(public_label, countdown_seconds_);
     timer_->stop();
+    elapsedClock_.invalidate();
+    hasStarted_ = false;
+    countdownSeconds_ = minutes * 60;
+    remainingSeconds_ = countdownSeconds_;
+    setBlankBackground(timerLabel_);
+    setLabel(timerLabel_, remainingSeconds_);
+    if (public_label)
+        setLabel(public_label, remainingSeconds_);
 }
 
 void CountdownWidget::updateCountdown()
 {
-    remaining_seconds_ -= 1;
+    if (!hasStarted_ || !elapsedClock_.isValid())
+        return;
 
-    setBlankBackground(timer_Label);
-        setLabel(timer_Label, remaining_seconds_);
-        if(public_label)
-            setLabel(public_label, remaining_seconds_);
+    const qint64 elapsedMilliseconds = elapsedClock_.elapsed();
+    const int elapsedSeconds = static_cast<int>(elapsedMilliseconds / 1000);
+    remainingSeconds_ = std::max(0, countdownSeconds_ - elapsedSeconds);
+    setBlankBackground(timerLabel_);
+    setLabel(timerLabel_, remainingSeconds_);
+    if (public_label)
+        setLabel(public_label, remainingSeconds_);
 
-
-    if (remaining_seconds_ <= 0)
+    if (elapsedMilliseconds >= static_cast<qint64>(countdownSeconds_) * 1000)
     {
-        setRedBackground(timer_Label);
+        remainingSeconds_ = 0;
+        setLabel(timerLabel_, 0);
+        if (public_label)
+            setLabel(public_label, 0);
+        setRedBackground(timerLabel_);
         timer_->stop();
-
-        // timer_Label->setText("00:00");
     }
-
 }
 
 void CountdownWidget::startCountdown()
 {
-    remaining_seconds_ = countdown_seconds_;
-    updateCountdown();
-    timer_->start(1000); // Initial delay of 1 second
+    if (countdownSeconds_ <= 0)
+    {
+        showInformation(this, tr("Kronometroa"), tr("Ezarri denbora hasi aurretik."));
+        return;
+    }
+
+    remainingSeconds_ = countdownSeconds_;
+    hasStarted_ = true;
+    elapsedClock_.start();
+    setBlankBackground(timerLabel_);
+    setLabel(timerLabel_, remainingSeconds_);
+    if (public_label)
+        setLabel(public_label, remainingSeconds_);
+    timer_->start();
 }
 
 void CountdownWidget::toggleHideShow()
 {
-    if(timer_Label->isVisible())
-    {
-        timer_Label->hide();
-    }
+    if (timerLabel_->isVisible())
+        timerLabel_->hide();
     else
-    {
-        timer_Label->show();
-    }
+        timerLabel_->show();
 }
 
-
-int CountdownWidget::getElapsedTime()
+int CountdownWidget::getElapsedTime() const
 {
-    return countdown_seconds_ - remaining_seconds_;
+    if (!hasStarted_ || !elapsedClock_.isValid())
+        return 0;
+    const qint64 elapsedSeconds = elapsedClock_.elapsed() / 1000;
+    return static_cast<int>(std::clamp<qint64>(elapsedSeconds, 0, countdownSeconds_));
+}
+
+bool CountdownWidget::hasStarted() const
+{
+    return hasStarted_;
+}
+
+void CountdownWidget::setPublicLabel(QLabel *label)
+{
+    public_label = label;
+    if (public_label)
+    {
+        setLabel(public_label, remainingSeconds_);
+        if (hasStarted_ && remainingSeconds_ == 0)
+            setRedBackground(public_label);
+        else
+            setBlankBackground(public_label);
+    }
 }

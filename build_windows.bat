@@ -19,7 +19,7 @@ set BUILD_DIR=build_windows
 :: Auto-detect Qt if QT_DIR is empty
 :: ---------------------------------------------------------------
 if "%QT_DIR%"=="" (
-    echo Buscando Qt6 en C:\Qt ...
+    echo Searching for Qt6 in C:\Qt ...
     for /f "delims=" %%d in ('dir /b /ad "C:\Qt" 2^>nul') do (
         :: Prefer msvc2022_64, then msvc2019_64, then mingw_64
         for %%s in (msvc2022_64 msvc2019_64 mingw_64 mingw_32) do (
@@ -192,7 +192,7 @@ if "!ISCC!"=="" (
 
 echo.
 echo === Done ===
-echo Ejecutable : %EXE_PATH%
+echo Executable : %EXE_PATH%
 echo Installer  : installer_output\SailkapenaHG_Setup_0.1.exe  (if Inno Setup was installed)
 echo.
 pause
