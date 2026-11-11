@@ -198,17 +198,16 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
-        const int firstColumnTone = roundIndex % 2 == 0 ? 220 : 244;
+        const bool isFinalRound = roundIndex + 1 == rounds.size();
+        const int roundTone = isFinalRound ? 216 : (roundIndex % 2 == 0 ? 228 : 244);
         for (ResultCriterion criterion : round.criteria)
         {
             const int field = criterion == ResultCriterion::Time ? 0 : 1;
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
             headers.append(criterionName(criterion));
-            columnTones.insert(nextColumn - 1, firstColumnTone - field * 10);
+            columnTones.insert(nextColumn - 1, roundTone);
         }
-        const int groupTone = firstColumnTone - 5;
-        headerGroups.push_back({firstColumn, nextColumn - 1, round.name,
-                                QColor(groupTone, groupTone, groupTone)});
+        headerGroups.push_back({firstColumn, nextColumn - 1, round.name, QColor(roundTone, roundTone, roundTone)});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
             const int cutFirstColumn = nextColumn;
@@ -217,8 +216,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
             columnTones.insert(nextColumn - 1, 236);
             cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
             headers.append(tr("Akatsak metatuak"));
-            columnTones.insert(nextColumn - 1, 226);
-            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(231, 231, 231)});
+            columnTones.insert(nextColumn - 1, 236);
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(236, 236, 236)});
         }
     }
     setColumnCount(nextColumn);
