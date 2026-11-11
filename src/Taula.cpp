@@ -195,6 +195,17 @@ Taula::Taula(QWidget *parent)
     });
 }
 
+void Taula::setPublicDisplay(bool publicDisplay)
+{
+    publicDisplay_ = publicDisplay;
+    if (publicDisplay_)
+        setEditTriggers(QAbstractItemView::NoEditTriggers);
+    else
+        setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
+    setSelectionMode(publicDisplay_ ? QAbstractItemView::NoSelection : QAbstractItemView::SingleSelection);
+    setFocusPolicy(publicDisplay_ ? Qt::NoFocus : Qt::StrongFocus);
+}
+
 void Taula::setPlayers(const std::vector<Player> &players,
                        const QVector<RoundDefinition> &rounds,
                        const std::vector<int> &eligibleIds,
@@ -262,28 +273,31 @@ void Taula::setPlayers(const std::vector<Player> &players,
         const Player &player = players[static_cast<std::size_t>(row)];
         const bool isEligible = std::find(eligibleIds.cbegin(), eligibleIds.cend(), player.id) != eligibleIds.cend();
 
-        auto *recordButton = new QPushButton(this);
-        recordButton->setIcon(clockIcon(palette().color(QPalette::ButtonText)));
-        recordButton->setIconSize(QSize(22, 22));
-        recordButton->setFixedSize(34, 30);
-        recordButton->setAccessibleName(tr("Denbora erregistratu: %1").arg(player.name));
-        recordButton->setAccessibleDescription(activeRoundTracksTime
-                                                   ? tr("Kronometroaren denbora jokalari honentzat erregistratzen du.")
-                                                   : tr("Txanda honetan ez da denborarik neurtzen."));
-        recordButton->setToolTip(activeRoundTracksTime
-                                     ? tr("Kronometroaren denbora erregistratu: %1").arg(player.name)
-                                     : tr("Txanda honetan ez da denborarik neurtzen."));
-        recordButton->setFocusPolicy(Qt::NoFocus);
-        QPalette buttonPalette = recordButton->palette();
-        const int buttonTone = row % 2 == 0 ? 248 : 234;
-        buttonPalette.setColor(QPalette::Button, QColor(buttonTone, buttonTone, buttonTone));
-        recordButton->setPalette(buttonPalette);
-        recordButton->setVisible(true);
-        recordButton->setEnabled(allowEditing && activeRoundTracksTime && isEligible);
-        setCellWidget(row, PLAYER_ACTION_COLUMN, recordButton);
-        connect(recordButton, &QPushButton::clicked, this, [this, id = player.id]() {
-            emit recordTimeRequested(id);
-        });
+        if (!publicDisplay_)
+        {
+            auto *recordButton = new QPushButton(this);
+            recordButton->setIcon(clockIcon(palette().color(QPalette::ButtonText)));
+            recordButton->setIconSize(QSize(22, 22));
+            recordButton->setFixedSize(34, 30);
+            recordButton->setAccessibleName(tr("Denbora erregistratu: %1").arg(player.name));
+            recordButton->setAccessibleDescription(activeRoundTracksTime
+                                                       ? tr("Kronometroaren denbora jokalari honentzat erregistratzen du.")
+                                                       : tr("Txanda honetan ez da denborarik neurtzen."));
+            recordButton->setToolTip(activeRoundTracksTime
+                                         ? tr("Kronometroaren denbora erregistratu: %1").arg(player.name)
+                                         : tr("Txanda honetan ez da denborarik neurtzen."));
+            recordButton->setFocusPolicy(Qt::NoFocus);
+            QPalette buttonPalette = recordButton->palette();
+            const int buttonTone = row % 2 == 0 ? 248 : 234;
+            buttonPalette.setColor(QPalette::Button, QColor(buttonTone, buttonTone, buttonTone));
+            recordButton->setPalette(buttonPalette);
+            recordButton->setVisible(true);
+            recordButton->setEnabled(allowEditing && activeRoundTracksTime && isEligible);
+            setCellWidget(row, PLAYER_ACTION_COLUMN, recordButton);
+            connect(recordButton, &QPushButton::clicked, this, [this, id = player.id]() {
+                emit recordTimeRequested(id);
+            });
+        }
 
         auto *nameItem = new QTableWidgetItem(player.name);
         nameItem->setData(Qt::UserRole, player.id);
@@ -317,6 +331,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
+                if (publicDisplay_)
+                    setReadOnly(resultItem);
                 setItem(row, column, resultItem);
             }
         }
@@ -386,6 +402,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
         if (groupWidth < requiredWidth)
             setColumnWidth(group.lastColumn, columnWidth(group.lastColumn) + requiredWidth - groupWidth);
     }
+    setColumnHidden(PLAYER_ACTION_COLUMN, publicDisplay_);
 }
 
 void Taula::keyPressEvent(QKeyEvent *event)

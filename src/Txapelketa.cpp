@@ -398,6 +398,7 @@ void Txapelketa::togglePublicWindow()
     {
         publicWindow_ = new PublicWindow(this);
         timer_->setPublicLabel(publicWindow_->timerLabel());
+        refreshTable();
     }
     if (publicWindow_->isVisible())
         publicWindow_->hide();
@@ -714,6 +715,8 @@ void Txapelketa::refreshTable(bool sortByRanking)
     });
     ordered.insert(ordered.end(), remaining.cbegin(), remaining.cend());
     table_->setPlayers(ordered, definition_.rounds, eligibleIds, activeRoundIndex_, !tournamentFinished_);
+    if (publicWindow_)
+        publicWindow_->standingsTable()->setPlayers(ordered, definition_.rounds, eligibleIds, activeRoundIndex_, false);
 }
 
 std::vector<Player> Txapelketa::rankedEligiblePlayers(int round) const

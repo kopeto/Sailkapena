@@ -20,6 +20,7 @@ public:
     static constexpr int PLAYER_NAME_COLUMN = 1;
 
     explicit Taula(QWidget *parent = nullptr);
+    void setPublicDisplay(bool publicDisplay);
     void setPlayers(const std::vector<Player> &players,
                     const QVector<RoundDefinition> &rounds,
                     const std::vector<int> &eligibleIds,
@@ -35,6 +36,7 @@ protected:
     void keyPressEvent(QKeyEvent *event) override;
 
 private:
+    bool publicDisplay_{false};
     std::vector<std::array<int, 2>> roundColumns_;
     std::vector<std::array<int, 2>> cutColumns_;
 };
