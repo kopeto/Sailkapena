@@ -8,11 +8,13 @@
 #include <QHeaderView>
 #include <QFontMetrics>
 #include <QHash>
+#include <QIcon>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPalette>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPixmap>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QStyle>
@@ -137,6 +139,21 @@ void setReadOnly(QTableWidgetItem *item)
 {
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 }
+
+QIcon clockIcon(const QColor &color)
+{
+    QPixmap pixmap(48, 48);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(color, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawEllipse(QRect(6, 6, 36, 36));
+    painter.drawLine(QPoint(24, 12), QPoint(24, 24));
+    painter.drawLine(QPoint(24, 24), QPoint(33, 29));
+    return QIcon(pixmap);
+}
 }
 
 Taula::Taula(QWidget *parent)
@@ -154,7 +171,7 @@ Taula::Taula(QWidget *parent)
     tablePalette.setColor(QPalette::HighlightedText, QColor(25, 25, 25));
     setPalette(tablePalette);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    horizontalHeader()->setMinimumSectionSize(90);
+    horizontalHeader()->setMinimumSectionSize(40);
 
     connect(this, &QTableWidget::itemChanged, this, [this](QTableWidgetItem *changedItem) {
         if (changedItem->column() < PLAYER_NAME_COLUMN)
@@ -233,10 +250,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
         model()->setHeaderData(tone.key(), Qt::Horizontal, QColor(tone.value(), tone.value(), tone.value()), Qt::BackgroundRole);
     static_cast<RoundColumnDelegate *>(itemDelegate())->setColumnTones(std::move(columnTones));
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
-    setColumnWidth(PLAYER_ACTION_COLUMN, 130);
-    setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
-                    std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), ResultCriterion::Time) ==
-                        rounds.at(activeRound).criteria.cend());
+    setColumnWidth(PLAYER_ACTION_COLUMN, 44);
     setRowCount(static_cast<int>(players.size()));
 
     const bool activeRoundTracksTime = activeRound >= 0 && activeRound < rounds.size() &&
@@ -248,13 +262,23 @@ void Taula::setPlayers(const std::vector<Player> &players,
         const Player &player = players[static_cast<std::size_t>(row)];
         const bool isEligible = std::find(eligibleIds.cbegin(), eligibleIds.cend(), player.id) != eligibleIds.cend();
 
-        auto *recordButton = new QPushButton(tr("Denbora sartu"), this);
+        auto *recordButton = new QPushButton(this);
+        recordButton->setIcon(clockIcon(palette().color(QPalette::ButtonText)));
+        recordButton->setIconSize(QSize(22, 22));
+        recordButton->setFixedSize(34, 30);
+        recordButton->setAccessibleName(tr("Denbora erregistratu: %1").arg(player.name));
+        recordButton->setAccessibleDescription(activeRoundTracksTime
+                                                   ? tr("Kronometroaren denbora jokalari honentzat erregistratzen du.")
+                                                   : tr("Txanda honetan ez da denborarik neurtzen."));
+        recordButton->setToolTip(activeRoundTracksTime
+                                     ? tr("Kronometroaren denbora erregistratu: %1").arg(player.name)
+                                     : tr("Txanda honetan ez da denborarik neurtzen."));
         recordButton->setFocusPolicy(Qt::NoFocus);
         QPalette buttonPalette = recordButton->palette();
         const int buttonTone = row % 2 == 0 ? 248 : 234;
         buttonPalette.setColor(QPalette::Button, QColor(buttonTone, buttonTone, buttonTone));
         recordButton->setPalette(buttonPalette);
-        recordButton->setVisible(allowEditing && activeRoundTracksTime);
+        recordButton->setVisible(true);
         recordButton->setEnabled(allowEditing && activeRoundTracksTime && isEligible);
         setCellWidget(row, PLAYER_ACTION_COLUMN, recordButton);
         connect(recordButton, &QPushButton::clicked, this, [this, id = player.id]() {
@@ -343,7 +367,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
     for (int column = 0; column < columnCount(); ++column)
         horizontalHeader()->setSectionResizeMode(column, QHeaderView::Interactive);
-    setColumnWidth(PLAYER_ACTION_COLUMN, std::max(130, columnWidth(PLAYER_ACTION_COLUMN)));
+    setColumnWidth(PLAYER_ACTION_COLUMN, 44);
     setColumnWidth(PLAYER_NAME_COLUMN, std::max(260, columnWidth(PLAYER_NAME_COLUMN)));
     const QFontMetrics headerFontMetrics(horizontalHeader()->font());
     for (const HeaderGroup &group : headerGroups)
