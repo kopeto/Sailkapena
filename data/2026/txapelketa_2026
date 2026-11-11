@@ -1,0 +1,53 @@
+{
+    "formatId": "sailkapena-default",
+    "name": "Txapelketa estandarra",
+    "rounds": [
+        {
+            "advanceCount": null,
+            "criteria": [
+                "errors"
+            ],
+            "durationMinutes": 30,
+            "id": "qualifier-1",
+            "name": "Sarrerako Proba",
+            "rankingScope": "cumulative",
+            "tiePolicy": "includeTies"
+        },
+        {
+            "advanceCount": null,
+            "criteria": [
+                "errors",
+                "time"
+            ],
+            "durationMinutes": 45,
+            "id": "8699a6ce-c338-4d29-b011-70863cbf706c",
+            "name": "Joan Etorrikoa",
+            "rankingScope": "cumulative",
+            "tiePolicy": "includeTies"
+        },
+        {
+            "advanceCount": 3,
+            "criteria": [
+                "errors",
+                "time"
+            ],
+            "durationMinutes": 45,
+            "id": "e66bc031-ea97-491e-bb03-ad375a7836e7",
+            "name": "Finalaurrekoa",
+            "rankingScope": "cumulative",
+            "tiePolicy": "manual"
+        },
+        {
+            "criteria": [
+                "errors",
+                "time"
+            ],
+            "durationMinutes": 60,
+            "id": "54b94934-9369-4ba1-be92-0b2b9ce341d6",
+            "name": "Finala",
+            "rankingScope": "round",
+            "tiePolicy": "includeTies"
+        }
+    ],
+    "schemaVersion": 1
+}
