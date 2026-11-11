@@ -26,6 +26,7 @@ struct HeaderGroup
     int firstColumn{0};
     int lastColumn{0};
     QString title;
+    QColor background;
 };
 
 class GroupedHeaderView final : public QHeaderView
@@ -86,6 +87,7 @@ protected:
             option.orientation = Qt::Horizontal;
             option.section = group.firstColumn;
             option.position = QStyleOptionHeader::OnlyOneSection;
+            option.palette.setColor(QPalette::Button, group.background);
             option.state |= QStyle::State_Enabled | QStyle::State_Raised;
             style()->drawControl(QStyle::CE_Header, &option, &painter, this);
         }
@@ -153,13 +155,13 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
+        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(232, 241, 249) : QColor(255, 255, 255);
         for (int field = 0; field < 2; ++field)
         {
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
             headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
         }
-        headerGroups.push_back({firstColumn, nextColumn - 1,
-                                tr("Txanda %1 — %2").arg(roundIndex + 1).arg(round.name)});
+        headerGroups.push_back({firstColumn, nextColumn - 1, round.name, roundBackground});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
             const int cutFirstColumn = nextColumn;
@@ -167,12 +169,16 @@ void Taula::setPlayers(const std::vector<Player> &players,
             headers.append(tr("Denbora metatua"));
             cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
             headers.append(tr("Akatsak metatuak"));
-            headerGroups.push_back({cutFirstColumn, nextColumn - 1,
-                                    tr("%1. txandako ebaketa").arg(roundIndex + 1)});
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(250, 249, 241)});
         }
     }
     setColumnCount(nextColumn);
     setHorizontalHeaderLabels(headers);
+    for (const HeaderGroup &group : headerGroups)
+    {
+        for (int column = group.firstColumn; column <= group.lastColumn; ++column)
+            model()->setHeaderData(column, Qt::Horizontal, group.background, Qt::BackgroundRole);
+    }
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
@@ -227,8 +233,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
-                if (roundIndex % 2 == 0)
-                    resultItem->setBackground(QColor(245, 248, 252));
+                resultItem->setBackground(roundIndex % 2 == 0 ? QColor(232, 241, 249) : QColor(255, 255, 255));
                 if (!isEditableRound)
                     setReadOnly(resultItem);
                 setItem(row, column, resultItem);
@@ -287,6 +292,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
     const QFontMetrics headerFontMetrics(horizontalHeader()->font());
     for (const HeaderGroup &group : headerGroups)
     {
+        if (group.title.isEmpty())
+            continue;
         int groupWidth = 0;
         for (int column = group.firstColumn; column <= group.lastColumn; ++column)
             groupWidth += columnWidth(column);
