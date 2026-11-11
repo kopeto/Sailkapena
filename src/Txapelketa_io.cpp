@@ -152,6 +152,37 @@ QJsonObject resultToJson(const Result &result)
     object.insert(QStringLiteral("errors"), result.errors ? QJsonValue(*result.errors) : QJsonValue(QJsonValue::Null));
     return object;
 }
+
+std::optional<qint64> accumulatedResult(const Player &player,
+                                       const QVector<RoundDefinition> &rounds,
+                                       int throughRound,
+                                       ResultCriterion criterion)
+{
+    qint64 total = 0;
+    bool hasValue = false;
+    for (int roundIndex = 0; roundIndex <= throughRound; ++roundIndex)
+    {
+        const RoundDefinition &round = rounds.at(roundIndex);
+        const bool isScored = std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
+        if (roundIndex >= static_cast<int>(player.results.size()))
+        {
+            if (isScored)
+                return std::nullopt;
+            continue;
+        }
+        const Result &result = player.results[static_cast<std::size_t>(roundIndex)];
+        const std::optional<int> value = criterion == ResultCriterion::Time ? result.timeSeconds : result.errors;
+        if (!value)
+        {
+            if (isScored)
+                return std::nullopt;
+            continue;
+        }
+        total += *value;
+        hasValue = true;
+    }
+    return hasValue ? std::optional<qint64>(total) : std::nullopt;
+}
 }
 
 bool Txapelketa::saveToFile()
@@ -182,10 +213,16 @@ bool Txapelketa::exportToCsv()
     QTextStream output(&file);
     output.setEncoding(QStringConverter::Utf8);
     QStringList headers{QStringLiteral("Jokalaria")};
-    for (const RoundDefinition &round : definition_.rounds)
+    for (qsizetype roundIndex = 0; roundIndex < definition_.rounds.size(); ++roundIndex)
     {
-        for (ResultCriterion criterion : round.criteria)
-            headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(criterion)));
+        const RoundDefinition &round = definition_.rounds.at(roundIndex);
+        headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(ResultCriterion::Time)));
+        headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(ResultCriterion::Errors)));
+        if (roundIndex + 1 < definition_.rounds.size() && round.advanceCount)
+        {
+            headers.append(tr("%1. txandako ebaketa: Denbora metatua").arg(roundIndex + 1));
+            headers.append(tr("%1. txandako ebaketa: Akatsak metatuak").arg(roundIndex + 1));
+        }
     }
     for (qsizetype index = 0; index < headers.size(); ++index)
     {
@@ -220,12 +257,17 @@ bool Txapelketa::exportToCsv()
         {
             const Result result = roundIndex < static_cast<qsizetype>(player.results.size())
                                       ? player.results[static_cast<std::size_t>(roundIndex)] : Result{};
-            for (ResultCriterion criterion : definition_.rounds.at(roundIndex).criteria)
+            values.append(result.timeSeconds ? TimeFormat::format(*result.timeSeconds) : QString());
+            values.append(result.errors ? QString::number(*result.errors) : QString());
+            const RoundDefinition &round = definition_.rounds.at(roundIndex);
+            if (roundIndex + 1 < definition_.rounds.size() && round.advanceCount)
             {
-                if (criterion == ResultCriterion::Time)
-                    values.append(result.timeSeconds ? TimeFormat::format(*result.timeSeconds) : QString());
-                else
-                    values.append(result.errors ? QString::number(*result.errors) : QString());
+                const std::optional<qint64> totalTime = accumulatedResult(player, definition_.rounds,
+                                                                           static_cast<int>(roundIndex), ResultCriterion::Time);
+                const std::optional<qint64> totalErrors = accumulatedResult(player, definition_.rounds,
+                                                                             static_cast<int>(roundIndex), ResultCriterion::Errors);
+                values.append(totalTime ? TimeFormat::format(*totalTime) : QString());
+                values.append(totalErrors ? QString::number(*totalErrors) : QString());
             }
         }
         for (qsizetype index = 0; index < values.size(); ++index)

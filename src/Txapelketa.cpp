@@ -26,6 +26,8 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSaveFile>
+#include <QSignalBlocker>
+#include <QStandardItemModel>
 #include <QSpinBox>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -78,7 +80,10 @@ Txapelketa::Txapelketa(QWidget *parent)
     table_ = new Taula(this);
     timer_ = new CountdownWidget(this);
     currentRoundLabel_ = new QLabel(this);
+    currentRoundLabel_->setText(tr("Uneko txanda:"));
     currentRoundLabel_->setStyleSheet(QStringLiteral("font-size: 18px; font-weight: bold;"));
+    roundSelector_ = new QComboBox(this);
+    roundSelector_->setMinimumWidth(220);
 
     finishRoundButton_ = new QPushButton(this);
     updateTableButton_ = new QPushButton(tr("Sailkapena eguneratu"), this);
@@ -86,6 +91,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     roundControlLayout_ = new QHBoxLayout();
     roundControlLayout_->setAlignment(Qt::AlignLeft);
     roundControlLayout_->addWidget(currentRoundLabel_);
+    roundControlLayout_->addWidget(roundSelector_);
     roundControlLayout_->addWidget(finishRoundButton_);
     roundControlLayout_->addWidget(updateTableButton_);
     roundControlLayout_->addWidget(editFormatButton_);
@@ -104,6 +110,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     mainLayout_->addWidget(table_);
 
     connect(finishRoundButton_, &QPushButton::clicked, this, &Txapelketa::finishCurrentRound);
+    connect(roundSelector_, &QComboBox::currentIndexChanged, this, &Txapelketa::selectRound);
     connect(updateTableButton_, &QPushButton::clicked, this, &Txapelketa::updateTable);
     connect(editFormatButton_, &QPushButton::clicked, this, &Txapelketa::editTournamentFormat);
     connect(addPlayerButton_, &QPushButton::clicked, this, &Txapelketa::addPlayer);
@@ -236,8 +243,7 @@ void Txapelketa::updateResult(int playerId, int round, int field, const QString 
     const std::vector<int> eligibleIds = eligiblePlayerIds(round);
     if (std::find(eligibleIds.cbegin(), eligibleIds.cend(), playerId) == eligibleIds.cend())
         return;
-    const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
-    if ((field != 0 && field != 1) || !roundHasCriterion(definition_.rounds.at(round), criterion))
+    if (field != 0 && field != 1)
         return;
 
     Result &result = player->results[static_cast<std::size_t>(round)];
@@ -842,9 +848,23 @@ void Txapelketa::updateRoundControls()
 {
     if (definition_.rounds.isEmpty())
         return;
-    const QString roundName = activeRoundIndex_ >= 0 && activeRoundIndex_ < definition_.rounds.size()
-                                  ? definition_.rounds.at(activeRoundIndex_).name : QString();
-    currentRoundLabel_->setText(tr("%1 — %2").arg(definition_.name, roundName));
+    currentRoundLabel_->setText(tr("Uneko txanda:"));
+    const QSignalBlocker blocker(roundSelector_);
+    roundSelector_->clear();
+    for (qsizetype index = 0; index < definition_.rounds.size(); ++index)
+    {
+        roundSelector_->addItem(tr("%1. %2").arg(index + 1).arg(definition_.rounds.at(index).name),
+                                static_cast<int>(index));
+    }
+    if (auto *model = qobject_cast<QStandardItemModel *>(roundSelector_->model()))
+    {
+        for (int index = 0; index < roundSelector_->count(); ++index)
+        {
+            if (QStandardItem *item = model->item(index))
+                item->setFlags(index <= activeRoundIndex_ + 1 ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
+        }
+    }
+    roundSelector_->setCurrentIndex(activeRoundIndex_);
     if (tournamentFinished_)
         finishRoundButton_->setText(tr("Txapelketa amaituta"));
     else if (activeRoundIndex_ == definition_.rounds.size() - 1)
@@ -855,6 +875,53 @@ void Txapelketa::updateRoundControls()
     const bool canAddPlayers = !tournamentFinished_ && activeRoundIndex_ == 0;
     addPlayerButton_->setEnabled(canAddPlayers);
     playerNameInput_->setEnabled(canAddPlayers);
+}
+
+void Txapelketa::selectRound(int roundIndex)
+{
+    if (roundIndex < 0 || roundIndex >= definition_.rounds.size())
+        return;
+    if (roundIndex == activeRoundIndex_)
+        return;
+    if (roundIndex == activeRoundIndex_ + 1)
+    {
+        finishCurrentRound();
+        updateRoundControls();
+        return;
+    }
+    if (roundIndex > activeRoundIndex_)
+    {
+        updateRoundControls();
+        return;
+    }
+
+    QMessageBox message(QMessageBox::Question, tr("Txanda berrireki"),
+                        tr("Aurreko txanda berrirekitzeak ondorengo txandetako emaitzak eta sailkapenak ezabatuko ditu. Jarraitu nahi duzu?"),
+                        QMessageBox::NoButton, this);
+    QAbstractButton *reopenButton = message.addButton(tr("Berrireki"), QMessageBox::AcceptRole);
+    message.addButton(tr("Utzi"), QMessageBox::RejectRole);
+    message.exec();
+    if (message.clickedButton() != reopenButton)
+    {
+        updateRoundControls();
+        return;
+    }
+
+    for (Player &player : players_)
+    {
+        for (std::size_t round = static_cast<std::size_t>(roundIndex + 1); round < player.results.size(); ++round)
+            player.results[round] = Result{};
+    }
+    for (std::size_t round = static_cast<std::size_t>(roundIndex + 1); round < qualifiedIdsByRound_.size(); ++round)
+        qualifiedIdsByRound_[round].clear();
+
+    activeRoundIndex_ = roundIndex;
+    tournamentFinished_ = false;
+    timer_->configureRound(definition_.rounds.at(activeRoundIndex_).durationMinutes,
+                           definition_.rounds.at(activeRoundIndex_).name);
+    updateRoundControls();
+    refreshTable();
+    saveCheckpoint();
 }
 
 Player *Txapelketa::findPlayer(int playerId)

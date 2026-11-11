@@ -2,6 +2,7 @@
 #define TXAPELKETA_H
 
 #include <QPointer>
+#include <QComboBox>
 #include <QStandardPaths>
 #include <QString>
 #include <QWidget>
@@ -42,6 +43,7 @@ private slots:
     void removePlayer(int playerId);
     void updateResult(int playerId, int round, int field, const QString &value);
     void finishCurrentRound();
+    void selectRound(int roundIndex);
 
 private:
     void refreshTable(bool sortByRanking = true);
@@ -67,6 +69,7 @@ private:
     QPointer<QPushButton> addPlayerButton_;
     QPointer<QPushButton> editFormatButton_;
     QPointer<QLabel> currentRoundLabel_;
+    QPointer<QComboBox> roundSelector_;
     QPointer<QLineEdit> playerNameInput_;
     QPointer<QHBoxLayout> playerInputLayout_;
     QPointer<PublicWindow> publicWindow_;

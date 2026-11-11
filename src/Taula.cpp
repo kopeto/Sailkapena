@@ -153,11 +153,10 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
-        for (ResultCriterion criterion : round.criteria)
+        for (int field = 0; field < 2; ++field)
         {
-            const int field = criterion == ResultCriterion::Time ? 0 : 1;
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
-            headers.append(criterionName(criterion));
+            headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
         }
         headerGroups.push_back({firstColumn, nextColumn - 1,
                                 tr("Txanda %1 — %2").arg(roundIndex + 1).arg(round.name)});
@@ -246,13 +245,10 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
                 qint64 total = 0;
                 bool complete = true;
-                bool hasScoredRound = false;
+                bool hasValue = false;
                 for (int resultRound = 0; resultRound <= cutRound; ++resultRound)
                 {
                     const RoundDefinition &round = rounds.at(resultRound);
-                    if (std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) == round.criteria.cend())
-                        continue;
-                    hasScoredRound = true;
                     if (resultRound >= static_cast<int>(player.results.size()))
                     {
                         complete = false;
@@ -262,13 +258,19 @@ void Taula::setPlayers(const std::vector<Player> &players,
                     const std::optional<int> value = field == 0 ? result.timeSeconds : result.errors;
                     if (!value)
                     {
-                        complete = false;
-                        break;
+                        const bool isScored = std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
+                        if (isScored)
+                        {
+                            complete = false;
+                            break;
+                        }
+                        continue;
                     }
                     total += *value;
+                    hasValue = true;
                 }
                 auto *aggregateItem = new QTableWidgetItem();
-                if (complete && hasScoredRound)
+                if (complete && hasValue)
                     aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
                 aggregateItem->setBackground(QColor(250, 249, 241));
                 setReadOnly(aggregateItem);
