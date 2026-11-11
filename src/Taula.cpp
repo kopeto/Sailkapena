@@ -5,16 +5,97 @@
 #include <QAbstractButton>
 #include <QColor>
 #include <QHeaderView>
+#include <QFontMetrics>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QPaintEvent>
+#include <QPainter>
 #include <QPushButton>
 #include <QSignalBlocker>
+#include <QStyle>
+#include <QStyleOptionHeader>
 #include <QTableWidgetItem>
 
 #include <algorithm>
+#include <utility>
 
 namespace
 {
+struct HeaderGroup
+{
+    int firstColumn{0};
+    int lastColumn{0};
+    QString title;
+};
+
+class GroupedHeaderView final : public QHeaderView
+{
+public:
+    explicit GroupedHeaderView(QWidget *parent = nullptr)
+        : QHeaderView(Qt::Horizontal, parent)
+    {
+        setMinimumHeight(56);
+        setDefaultAlignment(Qt::AlignCenter);
+    }
+
+    void setGroups(std::vector<HeaderGroup> groups)
+    {
+        groups_ = std::move(groups);
+        viewport()->update();
+    }
+
+protected:
+    void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override
+    {
+        const bool grouped = std::any_of(groups_.cbegin(), groups_.cend(), [logicalIndex](const HeaderGroup &group) {
+            return logicalIndex >= group.firstColumn && logicalIndex <= group.lastColumn;
+        });
+        if (!grouped || orientation() != Qt::Horizontal)
+        {
+            QHeaderView::paintSection(painter, rect, logicalIndex);
+            return;
+        }
+
+        QRect metricRect = rect;
+        metricRect.setTop(rect.top() + groupHeight_);
+        QHeaderView::paintSection(painter, metricRect, logicalIndex);
+    }
+
+    void paintEvent(QPaintEvent *event) override
+    {
+        QHeaderView::paintEvent(event);
+        if (orientation() != Qt::Horizontal)
+            return;
+
+        QPainter painter(viewport());
+        for (const HeaderGroup &group : groups_)
+        {
+            if (isSectionHidden(group.firstColumn) || isSectionHidden(group.lastColumn))
+                continue;
+            const int left = sectionViewportPosition(group.firstColumn);
+            const int right = sectionViewportPosition(group.lastColumn) + sectionSize(group.lastColumn);
+            QRect groupRect(left, 0, right - left, groupHeight_);
+            if (!groupRect.intersects(event->rect()))
+                continue;
+
+            QStyleOptionHeader option;
+            option.initFrom(this);
+            option.rect = groupRect;
+            option.text = group.title;
+            option.textAlignment = Qt::AlignCenter;
+            option.orientation = Qt::Horizontal;
+            option.section = group.firstColumn;
+            option.position = QStyleOptionHeader::OnlyOneSection;
+            option.state |= QStyle::State_Enabled | QStyle::State_Raised;
+            style()->drawControl(QStyle::CE_Header, &option, &painter, this);
+        }
+    }
+
+private:
+    static constexpr int groupHeight_{28};
+    std::vector<HeaderGroup> groups_;
+};
+
 void setReadOnly(QTableWidgetItem *item)
 {
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -24,6 +105,7 @@ void setReadOnly(QTableWidgetItem *item)
 Taula::Taula(QWidget *parent)
     : QTableWidget(parent)
 {
+    setHorizontalHeader(new GroupedHeaderView(this));
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setAlternatingRowColors(true);
@@ -63,18 +145,22 @@ void Taula::setPlayers(const std::vector<Player> &players,
     clearContents();
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     aggregateColumns_ = {{-1, -1}};
+    std::vector<HeaderGroup> headerGroups;
 
     QStringList headers{QString(), tr("Jokalaria")};
     int nextColumn = 2;
     for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
     {
         const RoundDefinition &round = rounds.at(roundIndex);
+        const int firstColumn = nextColumn;
         for (ResultCriterion criterion : round.criteria)
         {
             const int field = criterion == ResultCriterion::Time ? 0 : 1;
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
-            headers.append(tr("%1: %2").arg(round.name, criterionName(criterion)));
+            headers.append(criterionName(criterion));
         }
+        headerGroups.push_back({firstColumn, nextColumn - 1,
+                                tr("Txanda %1 — %2").arg(roundIndex + 1).arg(round.name)});
     }
     if (activeRound >= 0 && activeRound < rounds.size() &&
         rounds.at(activeRound).rankingScope == RankingScope::Cumulative)
@@ -88,9 +174,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
     }
     setColumnCount(nextColumn);
     setHorizontalHeaderLabels(headers);
+    static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
-    horizontalHeader()->setSectionResizeMode(PLAYER_NAME_COLUMN, QHeaderView::Interactive);
-    setColumnWidth(PLAYER_NAME_COLUMN, 260);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
                     std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), ResultCriterion::Time) ==
                         rounds.at(activeRound).criteria.cend());
@@ -186,6 +271,22 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 setItem(row, column, aggregateItem);
             }
         }
+    }
+
+    horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+    for (int column = 0; column < columnCount(); ++column)
+        horizontalHeader()->setSectionResizeMode(column, QHeaderView::Interactive);
+    setColumnWidth(PLAYER_ACTION_COLUMN, std::max(130, columnWidth(PLAYER_ACTION_COLUMN)));
+    setColumnWidth(PLAYER_NAME_COLUMN, std::max(260, columnWidth(PLAYER_NAME_COLUMN)));
+    const QFontMetrics headerFontMetrics(horizontalHeader()->font());
+    for (const HeaderGroup &group : headerGroups)
+    {
+        int groupWidth = 0;
+        for (int column = group.firstColumn; column <= group.lastColumn; ++column)
+            groupWidth += columnWidth(column);
+        const int requiredWidth = headerFontMetrics.horizontalAdvance(group.title) + 28;
+        if (groupWidth < requiredWidth)
+            setColumnWidth(group.lastColumn, columnWidth(group.lastColumn) + requiredWidth - groupWidth);
     }
 }
 
