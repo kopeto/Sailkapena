@@ -4,11 +4,13 @@
 
 #include <QAbstractButton>
 #include <QColor>
+#include <QFont>
 #include <QHeaderView>
 #include <QFontMetrics>
 #include <QHash>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QPalette>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPushButton>
@@ -108,22 +110,34 @@ public:
     {
     }
 
-    void setColumnBackgrounds(QHash<int, QColor> backgrounds)
+    void setColumnBackgrounds(QHash<int, std::array<QColor, 2>> backgrounds)
     {
         backgrounds_ = std::move(backgrounds);
+    }
+
+    void setRowBackgrounds(std::array<QColor, 2> backgrounds)
+    {
+        rowBackgrounds_ = std::move(backgrounds);
     }
 
 protected:
     void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override
     {
         QStyledItemDelegate::initStyleOption(option, index);
+        if (option->state & QStyle::State_Selected)
+            return;
+
+        const std::size_t rowShade = static_cast<std::size_t>(index.row() % 2);
         const auto background = backgrounds_.constFind(index.column());
-        if (background != backgrounds_.cend() && !(option->state & QStyle::State_Selected))
-            option->backgroundBrush = background.value();
+        if (background != backgrounds_.cend())
+            option->backgroundBrush = background.value()[static_cast<std::size_t>(index.row() % 2)];
+        else
+            option->backgroundBrush = rowBackgrounds_[rowShade];
     }
 
 private:
-    QHash<int, QColor> backgrounds_;
+    QHash<int, std::array<QColor, 2>> backgrounds_;
+    std::array<QColor, 2> rowBackgrounds_{{QColor(255, 255, 255), QColor(235, 235, 235)}};
 };
 
 void setReadOnly(QTableWidgetItem *item)
@@ -140,6 +154,12 @@ Taula::Taula(QWidget *parent)
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setSelectionMode(QAbstractItemView::SingleSelection);
     setAlternatingRowColors(true);
+    QPalette tablePalette = palette();
+    tablePalette.setColor(QPalette::Base, QColor(255, 255, 255));
+    tablePalette.setColor(QPalette::AlternateBase, QColor(232, 232, 232));
+    tablePalette.setColor(QPalette::Highlight, QColor(190, 190, 190));
+    tablePalette.setColor(QPalette::HighlightedText, QColor(25, 25, 25));
+    setPalette(tablePalette);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     horizontalHeader()->setMinimumSectionSize(90);
 
@@ -177,7 +197,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     cutColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     std::vector<HeaderGroup> headerGroups;
-    QHash<int, QColor> roundColumnBackgrounds;
+    QHash<int, std::array<QColor, 2>> columnBackgrounds;
 
     QStringList headers{QString(), tr("Jokalaria")};
     int nextColumn = 2;
@@ -185,13 +205,14 @@ void Taula::setPlayers(const std::vector<Player> &players,
     {
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
-        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(224, 238, 252) : QColor(255, 255, 255);
+        const QColor roundBackground = roundIndex % 2 == 0 ? QColor(224, 224, 224) : QColor(245, 245, 245);
+        const std::array<QColor, 2> shadedRoundRows{{QColor(226, 226, 226), QColor(210, 210, 210)}};
         for (int field = 0; field < 2; ++field)
         {
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
             headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
             if (roundIndex % 2 == 0)
-                roundColumnBackgrounds.insert(nextColumn - 1, roundBackground);
+                columnBackgrounds.insert(nextColumn - 1, shadedRoundRows);
         }
         headerGroups.push_back({firstColumn, nextColumn - 1, round.name, roundBackground});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
@@ -199,9 +220,11 @@ void Taula::setPlayers(const std::vector<Player> &players,
             const int cutFirstColumn = nextColumn;
             cutColumns_[static_cast<std::size_t>(roundIndex)][0] = nextColumn++;
             headers.append(tr("Denbora metatua"));
+            columnBackgrounds.insert(nextColumn - 1, {{QColor(244, 244, 244), QColor(228, 228, 228)}});
             cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
             headers.append(tr("Akatsak metatuak"));
-            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(250, 249, 241)});
+            columnBackgrounds.insert(nextColumn - 1, {{QColor(244, 244, 244), QColor(228, 228, 228)}});
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(240, 240, 240)});
         }
     }
     setColumnCount(nextColumn);
@@ -211,7 +234,9 @@ void Taula::setPlayers(const std::vector<Player> &players,
         for (int column = group.firstColumn; column <= group.lastColumn; ++column)
             model()->setHeaderData(column, Qt::Horizontal, group.background, Qt::BackgroundRole);
     }
-    static_cast<RoundColumnDelegate *>(itemDelegate())->setColumnBackgrounds(std::move(roundColumnBackgrounds));
+    auto *columnDelegate = static_cast<RoundColumnDelegate *>(itemDelegate());
+    columnDelegate->setColumnBackgrounds(std::move(columnBackgrounds));
+    columnDelegate->setRowBackgrounds({{QColor(255, 255, 255), QColor(235, 235, 235)}});
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
     setColumnWidth(PLAYER_ACTION_COLUMN, 130);
     setColumnHidden(PLAYER_ACTION_COLUMN, !allowEditing || activeRound < 0 || activeRound >= rounds.size() ||
@@ -241,7 +266,11 @@ void Taula::setPlayers(const std::vector<Player> &players,
         nameItem->setData(Qt::UserRole, player.id);
         setReadOnly(nameItem);
         if (activeRound >= 0 && isEligible)
-            nameItem->setBackground(QColor(218, 245, 218));
+        {
+            QFont playerFont = nameItem->font();
+            playerFont.setBold(true);
+            nameItem->setFont(playerFont);
+        }
         setItem(row, PLAYER_NAME_COLUMN, nameItem);
 
         for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
@@ -309,7 +338,6 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 auto *aggregateItem = new QTableWidgetItem();
                 if (complete && hasValue)
                     aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
-                aggregateItem->setBackground(QColor(250, 249, 241));
                 setReadOnly(aggregateItem);
                 setItem(row, column, aggregateItem);
             }
