@@ -199,10 +199,11 @@ void Taula::setPlayers(const std::vector<Player> &players,
         const RoundDefinition &round = rounds.at(roundIndex);
         const int firstColumn = nextColumn;
         const int firstColumnTone = roundIndex % 2 == 0 ? 220 : 244;
-        for (int field = 0; field < 2; ++field)
+        for (ResultCriterion criterion : round.criteria)
         {
+            const int field = criterion == ResultCriterion::Time ? 0 : 1;
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
-            headers.append(field == 0 ? criterionName(ResultCriterion::Time) : criterionName(ResultCriterion::Errors));
+            headers.append(criterionName(criterion));
             columnTones.insert(nextColumn - 1, firstColumnTone - field * 10);
         }
         const int groupTone = firstColumnTone - 5;

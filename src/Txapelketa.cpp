@@ -243,7 +243,8 @@ void Txapelketa::updateResult(int playerId, int round, int field, const QString 
     const std::vector<int> eligibleIds = eligiblePlayerIds(round);
     if (std::find(eligibleIds.cbegin(), eligibleIds.cend(), playerId) == eligibleIds.cend())
         return;
-    if (field != 0 && field != 1)
+    const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
+    if ((field != 0 && field != 1) || !roundHasCriterion(definition_.rounds.at(round), criterion))
         return;
 
     Result &result = player->results[static_cast<std::size_t>(round)];

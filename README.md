@@ -46,7 +46,7 @@ Txanda ixteko, parte-hartzaile hautagarri guztien irizpide-emaitzak osatu behar 
 
 Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak ebaketa horretara arteko denbora eta akats metatuak erakusten ditu. Denek aurrera egiten duten txandetan ez da ebaketa-zutaberik gehitzen.
 
-Taulak txanda bakoitzean denbora eta akatsak editatzeko zutabeak erakusten ditu. Uneko txanda goiko hautatzailean aukera daiteke; hurrengo txanda hautatzeak oraingoa ixten du, emaitza guztiak osatuta badaude. Aurreko txanda berrirekitzean, ondorengo txandetako emaitzak eta sailkapenak ezabatzen dira, berrespena eman ondoren. Sailkapenean txanda horretarako JSON formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
+Taulak txanda bakoitzean konfiguratutako irizpideei dagozkien emaitza-zutabeak erakusten ditu; denbora hautatuta ez badago, ez da denbora-zutaberik agertzen. Uneko txanda goiko hautatzailean aukera daiteke; hurrengo txanda hautatzeak oraingoa ixten du, emaitza guztiak osatuta badaude. Aurreko txanda berrirekitzean, ondorengo txandetako emaitzak eta sailkapenak ezabatzen dira, berrespena eman ondoren. Sailkapenean txanda horretarako JSON formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
 
 ## Emaitzak gorde eta esportatzea
 

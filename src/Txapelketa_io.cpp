@@ -216,8 +216,8 @@ bool Txapelketa::exportToCsv()
     for (qsizetype roundIndex = 0; roundIndex < definition_.rounds.size(); ++roundIndex)
     {
         const RoundDefinition &round = definition_.rounds.at(roundIndex);
-        headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(ResultCriterion::Time)));
-        headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(ResultCriterion::Errors)));
+        for (ResultCriterion criterion : round.criteria)
+            headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(criterion)));
         if (roundIndex + 1 < definition_.rounds.size() && round.advanceCount)
         {
             headers.append(tr("%1. txandako ebaketa: Denbora metatua").arg(roundIndex + 1));
@@ -257,9 +257,14 @@ bool Txapelketa::exportToCsv()
         {
             const Result result = roundIndex < static_cast<qsizetype>(player.results.size())
                                       ? player.results[static_cast<std::size_t>(roundIndex)] : Result{};
-            values.append(result.timeSeconds ? TimeFormat::format(*result.timeSeconds) : QString());
-            values.append(result.errors ? QString::number(*result.errors) : QString());
             const RoundDefinition &round = definition_.rounds.at(roundIndex);
+            for (ResultCriterion criterion : round.criteria)
+            {
+                if (criterion == ResultCriterion::Time)
+                    values.append(result.timeSeconds ? TimeFormat::format(*result.timeSeconds) : QString());
+                else
+                    values.append(result.errors ? QString::number(*result.errors) : QString());
+            }
             if (roundIndex + 1 < definition_.rounds.size() && round.advanceCount)
             {
                 const std::optional<qint64> totalTime = accumulatedResult(player, definition_.rounds,
