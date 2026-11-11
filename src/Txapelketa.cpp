@@ -245,18 +245,12 @@ void Txapelketa::recordTime(int playerId)
 
 void Txapelketa::removePlayer(int playerId)
 {
-    if (tournamentFinished_)
-    {
-        showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria ezabatu"),
-                          tr("Txapelketa amaitu ondoren ezin da jokalaririk ezabatu."));
-        return;
-    }
     const auto found = std::find_if(players_.begin(), players_.end(), [playerId](const Player &player) {
         return player.id == playerId;
     });
     if (found == players_.end())
         return;
-    if (activeRoundIndex_ > 0)
+    if (!tournamentFinished_ && activeRoundIndex_ > 0)
     {
         const std::vector<int> eligibleIds = eligiblePlayerIds(activeRoundIndex_);
         const bool isActivePlayer = std::find(eligibleIds.cbegin(), eligibleIds.cend(), playerId) != eligibleIds.cend();
