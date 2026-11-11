@@ -456,20 +456,6 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
 
         const int loadedActiveRound = activeRoundValue.toInt();
         const bool loadedFinished = root.value(QStringLiteral("tournamentFinished")).toBool(false);
-        auto loadedResultIsComplete = [&loadedDefinition](const Player &player, int roundIndex) {
-            if (roundIndex < 0 || roundIndex >= loadedDefinition.rounds.size() ||
-                roundIndex >= static_cast<int>(player.results.size()))
-                return false;
-            const Result &result = player.results[static_cast<std::size_t>(roundIndex)];
-            for (ResultCriterion criterion : loadedDefinition.rounds.at(roundIndex).criteria)
-            {
-                if (criterion == ResultCriterion::Time && !result.timeSeconds)
-                    return false;
-                if (criterion == ResultCriterion::Errors && !result.errors)
-                    return false;
-            }
-            return true;
-        };
         for (int closedRound = 0; closedRound < loadedActiveRound; ++closedRound)
         {
             std::vector<int> participants;
@@ -487,18 +473,6 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
                 showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
                             tr("Itxitako txanda batek ez du parte-hartzailerik."));
                 return false;
-            }
-            for (int playerId : participants)
-            {
-                const auto player = std::find_if(loadedPlayers.cbegin(), loadedPlayers.cend(), [playerId](const Player &candidate) {
-                    return candidate.id == playerId;
-                });
-                if (player == loadedPlayers.cend() || !loadedResultIsComplete(*player, closedRound))
-                {
-                    showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                                tr("Itxitako txanda batek emaitza osatugabeak dauzka."));
-                    return false;
-                }
             }
         }
         if (loadedActiveRound > 0 && loadedQualified[static_cast<std::size_t>(loadedActiveRound)].empty())
@@ -528,18 +502,6 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
                 showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
                             tr("Amaitutako txapelketak azken txandan parte-hartzailerik ez dauka."));
                 return false;
-            }
-            for (int playerId : finalParticipants)
-            {
-                const auto player = std::find_if(loadedPlayers.cbegin(), loadedPlayers.cend(), [playerId](const Player &candidate) {
-                    return candidate.id == playerId;
-                });
-                if (player == loadedPlayers.cend() || !loadedResultIsComplete(*player, loadedActiveRound))
-                {
-                    showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                                tr("Amaitutako txapelketak azken txandako emaitza osatugabeak dauzka."));
-                    return false;
-                }
             }
         }
 
