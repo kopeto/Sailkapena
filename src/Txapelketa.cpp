@@ -952,7 +952,7 @@ void Txapelketa::updateRoundControls()
     else if (activeRoundIndex_ == definition_.rounds.size() - 1)
         finishRoundButton_->setText(tr("Txapelketa amaitu"));
     else
-        finishRoundButton_->setText(tr("Proba itxi eta hurrengora pasa"));
+        finishRoundButton_->setText(tr("Proba amaitu"));
     finishRoundButton_->setEnabled(!tournamentFinished_);
 }
 
