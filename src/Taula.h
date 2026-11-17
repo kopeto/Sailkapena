@@ -24,6 +24,7 @@ public:
     void setPlayers(const std::vector<Player> &players,
                     const QVector<RoundDefinition> &rounds,
                     const std::vector<int> &eligibleIds,
+                    const std::vector<std::vector<int>> &eligibleIdsByRound,
                     int activeRound,
                     bool allowEditing);
 

@@ -119,6 +119,15 @@ bool parseOptionalInteger(const QJsonValue &value, std::optional<int> &result)
     return true;
 }
 
+std::optional<int> parseLegacyCsvTime(const QString &text)
+{
+    const QString trimmed = text.trimmed();
+    std::optional<int> result = TimeFormat::parse(trimmed);
+    if (!result)
+        result = TimeFormat::parseLegacy(trimmed);
+    return result;
+}
+
 bool parseLegacyTime(const QString &text, std::optional<int> &result)
 {
     if (text.trimmed().isEmpty())
@@ -126,7 +135,7 @@ bool parseLegacyTime(const QString &text, std::optional<int> &result)
         result.reset();
         return true;
     }
-    result = TimeFormat::parse(text.trimmed());
+    result = parseLegacyCsvTime(text);
     return result.has_value();
 }
 
@@ -220,8 +229,8 @@ bool Txapelketa::exportToCsv()
             headers.append(QStringLiteral("%1: %2").arg(round.name, criterionName(criterion)));
         if (roundIndex + 1 < definition_.rounds.size() && round.advanceCount)
         {
-            headers.append(tr("%1. txandako ebaketa: Denbora metatua").arg(roundIndex + 1));
-            headers.append(tr("%1. txandako ebaketa: Akatsak metatuak").arg(roundIndex + 1));
+            headers.append(tr("%1. probako ebaketa: Akatsak Batera").arg(roundIndex + 1));
+            headers.append(tr("%1. probako ebaketa: Denborak batera").arg(roundIndex + 1));
         }
     }
     for (qsizetype index = 0; index < headers.size(); ++index)
@@ -271,8 +280,8 @@ bool Txapelketa::exportToCsv()
                                                                            static_cast<int>(roundIndex), ResultCriterion::Time);
                 const std::optional<qint64> totalErrors = accumulatedResult(player, definition_.rounds,
                                                                              static_cast<int>(roundIndex), ResultCriterion::Errors);
-                values.append(totalTime ? TimeFormat::format(*totalTime) : QString());
                 values.append(totalErrors ? QString::number(*totalErrors) : QString());
+                values.append(totalTime ? TimeFormat::format(*totalTime) : QString());
             }
         }
         for (qsizetype index = 0; index < values.size(); ++index)
@@ -289,8 +298,6 @@ bool Txapelketa::exportToCsv()
         showMessage(this, QMessageBox::Warning, tr("Errorea"), tr("Ezin izan da CSV fitxategia esportatu."));
         return false;
     }
-    showMessage(this, QMessageBox::Information, tr("CSV esportatu"),
-                tr("CSV fitxategia taula ikusteko da; saioa eta txapelketaren formatua berreskuratzeko, erabili JSON."));
     return true;
 }
 
@@ -380,7 +387,7 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
             const QJsonValue resultsValue = playerObject.value(QStringLiteral("results"));
             if (!resultsValue.isArray() || resultsValue.toArray().size() != loadedDefinition.rounds.size())
             {
-                lineError = tr("%1 jokalariak ez du txanda bakoitzeko emaitzarik.").arg(name);
+                lineError = tr("%1 jokalariak ez du proba bakoitzeko emaitzarik.").arg(name);
                 break;
             }
             Player player(name);
@@ -389,7 +396,7 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
             {
                 if (!resultsValue.toArray().at(roundIndex).isObject())
                 {
-                    lineError = tr("%1 jokalariaren %2. txandako emaitzak baliogabeak dira.").arg(name).arg(roundIndex + 1);
+                    lineError = tr("%1 jokalariaren %2. probako emaitzak baliogabeak dira.").arg(name).arg(roundIndex + 1);
                     break;
                 }
                 const QJsonObject resultObject = resultsValue.toArray().at(roundIndex).toObject();
@@ -397,7 +404,7 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
                 if (!parseOptionalInteger(resultObject.value(QStringLiteral("timeSeconds")), result.timeSeconds) ||
                     !parseOptionalInteger(resultObject.value(QStringLiteral("errors")), result.errors))
                 {
-                    lineError = tr("%1 jokalariaren %2. txandako emaitza zenbakizkoak baliogabeak dira.").arg(name).arg(roundIndex + 1);
+                    lineError = tr("%1 jokalariaren %2. probako emaitza zenbakizkoak baliogabeak dira.").arg(name).arg(roundIndex + 1);
                     break;
                 }
             }
@@ -415,14 +422,14 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
         if (!activeRoundValue.isDouble() || activeRoundValue.toDouble() != activeRoundValue.toInt() ||
             activeRoundValue.toInt(-1) < 0 || activeRoundValue.toInt() >= loadedDefinition.rounds.size())
         {
-            showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Uneko txanda baliogabea da."));
+            showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Uneko proba baliogabea da."));
             return false;
         }
         std::vector<std::vector<int>> loadedQualified(static_cast<std::size_t>(loadedDefinition.rounds.size()));
         const QJsonValue qualifiedValue = root.value(QStringLiteral("qualifiedPlayersByRound"));
         if (!qualifiedValue.isArray() || qualifiedValue.toArray().size() != loadedDefinition.rounds.size())
         {
-            showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Txandaz pasatutako jokalarien zerrenda baliogabea da."));
+            showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Probaz pasatutako jokalarien zerrenda baliogabea da."));
             return false;
         }
         for (qsizetype roundIndex = 0; roundIndex < qualifiedValue.toArray().size(); ++roundIndex)
@@ -430,7 +437,7 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
             const QJsonValue namesValue = qualifiedValue.toArray().at(roundIndex);
             if (!namesValue.isArray())
             {
-                showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Txandaz pasatutako jokalarien izenak baliogabeak dira."));
+                showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"), tr("Probaz pasatutako jokalarien izenak baliogabeak dira."));
                 return false;
             }
             QSet<QString> namesSeen;
@@ -456,7 +463,24 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
 
         const int loadedActiveRound = activeRoundValue.toInt();
         const bool loadedFinished = root.value(QStringLiteral("tournamentFinished")).toBool(false);
-        for (int closedRound = 0; closedRound < loadedActiveRound; ++closedRound)
+        int furthestReachedRound = 0;
+        bool hasUnreachedRound = false;
+        for (int round = 1; round < static_cast<int>(loadedQualified.size()); ++round)
+        {
+            if (loadedQualified[static_cast<std::size_t>(round)].empty())
+            {
+                hasUnreachedRound = true;
+                continue;
+            }
+            if (hasUnreachedRound)
+            {
+                showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
+                            tr("Aurrerapen-zerrendek probak ordenan bete behar dituzte."));
+                return false;
+            }
+            furthestReachedRound = round;
+        }
+        for (int closedRound = 0; closedRound < furthestReachedRound; ++closedRound)
         {
             std::vector<int> participants;
             if (closedRound == 0)
@@ -471,22 +495,16 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
             if (participants.empty())
             {
                 showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                            tr("Itxitako txanda batek ez du parte-hartzailerik."));
+                            tr("Itxitako proba batek ez du parte-hartzailerik."));
                 return false;
             }
-        }
-        if (loadedActiveRound > 0 && loadedQualified[static_cast<std::size_t>(loadedActiveRound)].empty())
-        {
-            showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                        tr("Uneko txandak ez dauka sailkatutako jokalaririk."));
-            return false;
         }
         if (loadedFinished)
         {
             if (loadedActiveRound != loadedDefinition.rounds.size() - 1)
             {
                 showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                            tr("Amaitutako txapelketa batek azken txandan egon behar du."));
+                            tr("Amaitutako txapelketa batek azken proban egon behar du."));
                 return false;
             }
             const std::vector<int> finalParticipants = loadedActiveRound == 0
@@ -500,7 +518,7 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
             if (finalParticipants.empty())
             {
                 showMessage(this, QMessageBox::Warning, tr("Saio baliogabea"),
-                            tr("Amaitutako txapelketak azken txandan parte-hartzailerik ez dauka."));
+                            tr("Amaitutako txapelketak azken proban parte-hartzailerik ez dauka."));
                 return false;
             }
         }
@@ -552,10 +570,10 @@ bool Txapelketa::loadFromFile_(const QString &filePath)
         }
         if (fields.size() == 9)
         {
-            const auto firstTime = TimeFormat::parse(fields[1].trimmed());
-            const auto secondTime = TimeFormat::parse(fields[3].trimmed());
-            const auto thirdTime = TimeFormat::parse(fields[5].trimmed());
-            const auto combinedTime = TimeFormat::parse(fields[7].trimmed());
+            const auto firstTime = parseLegacyCsvTime(fields[1]);
+            const auto secondTime = parseLegacyCsvTime(fields[3]);
+            const auto thirdTime = parseLegacyCsvTime(fields[5]);
+            const auto combinedTime = parseLegacyCsvTime(fields[7]);
             if (firstTime && secondTime && thirdTime && combinedTime &&
                 static_cast<qint64>(*firstTime) + *secondTime + *thirdTime == *combinedTime)
             {

@@ -10,7 +10,6 @@ MainWindow::MainWindow()
 
     QMenu *fileMenu = menuBar()->addMenu(tr("&Fitxategia"));
     QMenu *playersMenu = menuBar()->addMenu(tr("&Jokalariak"));
-    QMenu *viewMenu = menuBar()->addMenu(tr("&Ikusi"));
     QMenu *helpMenu = menuBar()->addMenu(tr("&Laguntza"));
 
     QAction *saveAction = new QAction(tr("&Emaitzak gorde"), this);
@@ -34,10 +33,6 @@ MainWindow::MainWindow()
     QAction *addPlayersAction = new QAction(tr("Jokalariak gehitu..."), this);
     connect(addPlayersAction, &QAction::triggered, txapelketa, &Txapelketa::addPlayers);
     playersMenu->addAction(addPlayersAction);
-
-    QAction *publicWindowAction = new QAction(tr("Pantaila publikoa erakutsi/ezkutatu"), this);
-    connect(publicWindowAction, &QAction::triggered, this, &MainWindow::pantailaPublikoaErakutsi);
-    viewMenu->addAction(publicWindowAction);
 
     QAction *aboutAction = new QAction(tr("&Aplikazioari buruz"), this);
     connect(aboutAction, &QAction::triggered, this, &MainWindow::about);

@@ -40,7 +40,7 @@ TournamentDefinition TournamentDefinition::defaultDefinition()
 
     RoundDefinition first;
     first.id = QStringLiteral("qualifier-1");
-    first.name = QStringLiteral("Lehen txanda");
+    first.name = QStringLiteral("Lehen proba");
     first.durationMinutes = 5;
     first.criteria = {ResultCriterion::Errors, ResultCriterion::Time};
     first.advanceCount = std::nullopt;
@@ -48,7 +48,7 @@ TournamentDefinition TournamentDefinition::defaultDefinition()
 
     RoundDefinition second;
     second.id = QStringLiteral("qualifier-2");
-    second.name = QStringLiteral("Bigarren txanda");
+    second.name = QStringLiteral("Bigarren proba");
     second.durationMinutes = 5;
     second.criteria = {ResultCriterion::Errors, ResultCriterion::Time};
     second.advanceCount = 6;
@@ -90,7 +90,7 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
     const QJsonValue roundsValue = root.value(QStringLiteral("rounds"));
     if (!roundsValue.isArray() || roundsValue.toArray().isEmpty() || roundsValue.toArray().size() > 32)
     {
-        error = QStringLiteral("'rounds' eremuak 1 eta 32 txanda artean izan behar ditu.");
+        error = QStringLiteral("'rounds' eremuak 1 eta 32 proba artean izan behar ditu.");
         return false;
     }
 
@@ -100,19 +100,19 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
     {
         if (!rounds.at(index).isObject())
         {
-            error = QStringLiteral("%1. txandaren definizioa objektu bat izan behar da.").arg(index + 1);
+            error = QStringLiteral("%1. probaren definizioa objektu bat izan behar da.").arg(index + 1);
             return false;
         }
 
         const QJsonObject roundObject = rounds.at(index).toObject();
         RoundDefinition round;
         round.id = optionalString(roundObject, QStringLiteral("id"), QStringLiteral("round-%1").arg(index + 1));
-        round.name = optionalString(roundObject, QStringLiteral("name"), QStringLiteral("%1. txanda").arg(index + 1));
+        round.name = optionalString(roundObject, QStringLiteral("name"), QStringLiteral("%1. proba").arg(index + 1));
         if (!readPositiveInteger(roundObject, QStringLiteral("durationMinutes"), round.durationMinutes, error))
             return false;
         if (roundIds.contains(round.id))
         {
-            error = QStringLiteral("Txanda bakoitzaren 'id' balioak bakarra izan behar du.");
+            error = QStringLiteral("Proba bakoitzaren 'id' balioak bakarra izan behar du.");
             return false;
         }
         roundIds.insert(round.id);
@@ -120,7 +120,7 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
         const QJsonValue criteriaValue = roundObject.value(QStringLiteral("criteria"));
         if (!criteriaValue.isArray() || criteriaValue.toArray().isEmpty())
         {
-            error = QStringLiteral("'%1' txandak gutxienez irizpide bat izan behar du.").arg(round.name);
+            error = QStringLiteral("'%1' probak gutxienez irizpide bat izan behar du.").arg(round.name);
             return false;
         }
         QSet<QString> criteriaSeen;
@@ -128,7 +128,7 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
         {
             if (!criterionValue.isString())
             {
-                error = QStringLiteral("'%1' txandako 'criteria' balioak testuak izan behar dira.").arg(round.name);
+                error = QStringLiteral("'%1' probako 'criteria' balioak testuak izan behar dira.").arg(round.name);
                 return false;
             }
             const QString key = criterionValue.toString();
@@ -139,7 +139,7 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
             }
             if (criteriaSeen.contains(key))
             {
-                error = QStringLiteral("Irizpide bat ezin da bi aldiz errepikatu txanda berean.");
+                error = QStringLiteral("Irizpide bat ezin da bi aldiz errepikatu proba berean.");
                 return false;
             }
             criteriaSeen.insert(key);
@@ -179,13 +179,13 @@ bool TournamentDefinition::fromJson(const QByteArray &json, TournamentDefinition
                 round.advanceCount = advanceValue.toInt();
             else
             {
-                error = QStringLiteral("'%1' txandako 'advanceCount' zenbaki positiboa edo null izan behar da.").arg(round.name);
+                error = QStringLiteral("'%1' probako 'advanceCount' zenbaki positiboa edo null izan behar da.").arg(round.name);
                 return false;
             }
         }
         else if (!advanceValue.isUndefined() && !advanceValue.isNull())
         {
-            error = QStringLiteral("Azken txandak ezin du 'advanceCount' izan.");
+            error = QStringLiteral("Azken probak ezin du 'advanceCount' izan.");
             return false;
         }
 

@@ -52,11 +52,6 @@ private slots:
     {
         txapelketa->loadFromFile();
     }
-
-    inline void pantailaPublikoaErakutsi()
-    {
-        txapelketa->togglePublicWindow();
-    }
 };
 
 #endif // MAINWINDOW_H

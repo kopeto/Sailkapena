@@ -16,6 +16,7 @@
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QHash>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
@@ -30,7 +31,6 @@
 #include <QSaveFile>
 #include <QSet>
 #include <QSignalBlocker>
-#include <QStandardItemModel>
 #include <QSpinBox>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -83,7 +83,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     table_ = new Taula(this);
     timer_ = new CountdownWidget(this);
     currentRoundLabel_ = new QLabel(this);
-    currentRoundLabel_->setText(tr("Uneko txanda:"));
+    currentRoundLabel_->setText(tr("Uneko proba:"));
     currentRoundLabel_->setStyleSheet(QStringLiteral("font-size: 18px; font-weight: bold;"));
     roundSelector_ = new QComboBox(this);
     roundSelector_->setMinimumWidth(220);
@@ -140,7 +140,7 @@ void Txapelketa::addPlayers()
     if (tournamentFinished_ || activeRoundIndex_ != 0)
     {
         showBasqueMessage(this, QMessageBox::Information, tr("Jokalariak gehitu"),
-                          tr("Jokalariak lehen txanda hasi aurretik bakarrik gehitu daitezke."));
+                          tr("Jokalariak lehen proba hasi aurretik bakarrik gehitu daitezke."));
         return;
     }
 
@@ -292,7 +292,7 @@ void Txapelketa::removePlayer(int playerId)
         if (isActivePlayer && eligibleIds.size() == 1)
         {
             showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria ezabatu"),
-                              tr("Ezin da txandako azken jokalaria ezabatu."));
+                              tr("Ezin da probako azken jokalaria ezabatu."));
             return;
         }
     }
@@ -307,6 +307,9 @@ void Txapelketa::updateResult(int playerId, int round, int field, const QString 
 {
     Player *player = findPlayer(playerId);
     if (!player || round < 0 || round >= definition_.rounds.size() || round >= static_cast<int>(player->results.size()))
+        return;
+    const std::vector<int> participantIds = eligiblePlayerIds(round);
+    if (std::find(participantIds.cbegin(), participantIds.cend(), playerId) == participantIds.cend())
         return;
     const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
     if ((field != 0 && field != 1) || !roundHasCriterion(definition_.rounds.at(round), criterion))
@@ -346,7 +349,7 @@ void Txapelketa::updateResult(int playerId, int round, int field, const QString 
     if (!valid)
     {
         const QString message = field == 0
-            ? tr("Sartu denbora HH:MM:SS formatuan; adibidez, 00:12:34.")
+            ? tr("Sartu denbora MM:SS formatuan; adibidez, 12:34.")
             : tr("Akats kopuruak zero edo handiagoa den zenbaki osoa izan behar du.");
         QTimer::singleShot(0, this, [this, message]() {
             refreshTable(false);
@@ -369,8 +372,8 @@ void Txapelketa::finishCurrentRound()
     const std::vector<int> eligibleIds = eligiblePlayerIds(activeRoundIndex_);
     if (eligibleIds.empty())
     {
-        showBasqueMessage(this, QMessageBox::Information, tr("Txanda amaitu"),
-                          tr("Txanda honetan ez dago jokalaririk."));
+        showBasqueMessage(this, QMessageBox::Information, tr("Proba amaitu"),
+                          tr("Proba honetan ez dago jokalaririk."));
         return;
     }
 
@@ -504,12 +507,12 @@ void Txapelketa::editTournamentFormat()
         for (std::size_t index = 0; index < rows.size(); ++index)
         {
             RoundEditorRow &row = rows[index];
-            row.card->setTitle(QObject::tr("%1. txanda").arg(index + 1));
+            row.card->setTitle(QObject::tr("%1. proba").arg(index + 1));
             row.moveUp->setEnabled(index > 0);
             row.moveDown->setEnabled(index + 1 < rows.size());
             const bool isFinalRound = index + 1 == rows.size();
-            row.advanceLabel->setText(isFinalRound ? QObject::tr("Aurrerapena: azken txanda")
-                                                   : QObject::tr("Aurrera pasatzeko kopurua"));
+            row.advanceLabel->setText(isFinalRound ? QObject::tr("Aurrerapena: azken proba")
+                                                   : QObject::tr("Aurrera pasako direnak"));
             row.advanceAll->setEnabled(!isFinalRound);
             row.advanceCount->setEnabled(!isFinalRound && !row.advanceAll->isChecked());
             row.tiePolicy->setEnabled(!isFinalRound);
@@ -527,12 +530,12 @@ void Txapelketa::editTournamentFormat()
         row.duration->setRange(1, 1440);
         row.duration->setSuffix(QObject::tr(" min"));
         row.criteria = new QComboBox(row.card);
-        row.criteria->addItem(QObject::tr("Akatsak, ondoren denbora"), QStringLiteral("errors,time"));
-        row.criteria->addItem(QObject::tr("Denbora, ondoren akatsak"), QStringLiteral("time,errors"));
+        row.criteria->addItem(QObject::tr("Akatsak, denbora"), QStringLiteral("errors,time"));
+        row.criteria->addItem(QObject::tr("Denbora, akatsak"), QStringLiteral("time,errors"));
         row.criteria->addItem(QObject::tr("Akatsak bakarrik"), QStringLiteral("errors"));
         row.criteria->addItem(QObject::tr("Denbora bakarrik"), QStringLiteral("time"));
         row.rankingScope = new QComboBox(row.card);
-        row.rankingScope->addItem(QObject::tr("Txanda honetako emaitzak"), QStringLiteral("round"));
+        row.rankingScope->addItem(QObject::tr("Proba honetako emaitzak"), QStringLiteral("round"));
         row.rankingScope->addItem(QObject::tr("Emaitza metatuak"), QStringLiteral("cumulative"));
         row.advanceLabel = new QLabel(row.card);
         row.advanceAll = new QCheckBox(QObject::tr("Denak pasatuko dira"), row.card);
@@ -544,13 +547,13 @@ void Txapelketa::editTournamentFormat()
         row.tiePolicy->addItem(QObject::tr("Eskuz aukeratu"), QStringLiteral("manual"));
         row.moveUp = new QPushButton(QObject::tr("Gora"), row.card);
         row.moveDown = new QPushButton(QObject::tr("Behera"), row.card);
-        row.remove = new QPushButton(QObject::tr("Txanda kendu"), row.card);
+        row.remove = new QPushButton(QObject::tr("Proba kendu"), row.card);
 
         grid->addWidget(new QLabel(QObject::tr("Izena"), row.card), 0, 0);
         grid->addWidget(row.name, 0, 1);
         grid->addWidget(new QLabel(QObject::tr("Iraupena"), row.card), 0, 2);
         grid->addWidget(row.duration, 0, 3);
-        grid->addWidget(new QLabel(QObject::tr("Irizpideak eta lehentasuna"), row.card), 1, 0);
+        grid->addWidget(new QLabel(QObject::tr("Irizpideak"), row.card), 1, 0);
         grid->addWidget(row.criteria, 1, 1, 1, 3);
         grid->addWidget(new QLabel(QObject::tr("Sailkapena"), row.card), 2, 0);
         grid->addWidget(row.rankingScope, 2, 1, 1, 3);
@@ -615,8 +618,8 @@ void Txapelketa::editTournamentFormat()
         QObject::connect(row.remove, &QPushButton::clicked, card, [card, &rows, roundsLayout, &updateRoundControls, &dialog]() {
             if (rows.size() <= 1)
             {
-                showBasqueMessage(&dialog, QMessageBox::Information, QObject::tr("Txandak"),
-                                  QObject::tr("Gutxienez txanda bat eduki behar du txapelketak."));
+                showBasqueMessage(&dialog, QMessageBox::Information, QObject::tr("Probak"),
+                                  QObject::tr("Gutxienez proba bat eduki behar du txapelketak."));
                 return;
             }
             roundsLayout->removeWidget(card);
@@ -642,7 +645,7 @@ void Txapelketa::editTournamentFormat()
         createRoundRow(&round);
 
     auto *roundButtons = new QHBoxLayout();
-    auto *addRoundButton = new QPushButton(tr("Gehitu txanda"), &dialog);
+    auto *addRoundButton = new QPushButton(tr("Gehitu proba"), &dialog);
     auto *importButton = new QPushButton(tr("JSON inportatu..."), &dialog);
     auto *exportButton = new QPushButton(tr("JSON esportatu..."), &dialog);
     roundButtons->addWidget(addRoundButton);
@@ -659,7 +662,7 @@ void Txapelketa::editTournamentFormat()
     auto collectDefinition = [&rows, formatName, &formatId](TournamentDefinition &result, QString &error) {
         if (rows.empty())
         {
-            error = QObject::tr("Gutxienez txanda bat eduki behar du txapelketak.");
+            error = QObject::tr("Gutxienez proba bat eduki behar du txapelketak.");
             return false;
         }
         TournamentDefinition draft;
@@ -671,7 +674,7 @@ void Txapelketa::editTournamentFormat()
             RoundDefinition round;
             round.id = source.id;
             round.name = source.name->text().trimmed().isEmpty()
-                             ? QObject::tr("%1. txanda").arg(index + 1) : source.name->text().trimmed();
+                             ? QObject::tr("%1. proba").arg(index + 1) : source.name->text().trimmed();
             round.durationMinutes = source.duration->value();
             const QStringList criteria = source.criteria->currentData().toString().split(QLatin1Char(','));
             for (const QString &criterion : criteria)
@@ -775,19 +778,47 @@ void Txapelketa::refreshTable(bool sortByRanking)
     if (activeRoundIndex_ >= 0 && activeRoundIndex_ < definition_.rounds.size())
         ordered = rankedEligiblePlayers(activeRoundIndex_);
     std::vector<int> eligibleIds = eligiblePlayerIds(activeRoundIndex_);
+    std::vector<std::vector<int>> eligibleIdsByRound;
+    eligibleIdsByRound.reserve(static_cast<std::size_t>(definition_.rounds.size()));
+    for (qsizetype round = 0; round < definition_.rounds.size(); ++round)
+        eligibleIdsByRound.push_back(eligiblePlayerIds(static_cast<int>(round)));
+
+    QHash<int, int> lastParticipatedRound;
+    QHash<int, int> lastPlacement;
+    for (int round = 0; round < activeRoundIndex_; ++round)
+    {
+        const std::vector<Player> previousRanking = rankedEligiblePlayers(round);
+        for (int position = 0; position < static_cast<int>(previousRanking.size()); ++position)
+        {
+            const int playerId = previousRanking[static_cast<std::size_t>(position)].id;
+            lastParticipatedRound.insert(playerId, round);
+            lastPlacement.insert(playerId, position);
+        }
+    }
+
     std::vector<Player> remaining;
     for (const Player &player : players_)
     {
         if (std::find(eligibleIds.cbegin(), eligibleIds.cend(), player.id) == eligibleIds.cend())
             remaining.push_back(player);
     }
-    std::stable_sort(remaining.begin(), remaining.end(), [](const Player &left, const Player &right) {
+    std::stable_sort(remaining.begin(), remaining.end(), [&lastParticipatedRound, &lastPlacement](const Player &left, const Player &right) {
+        const int leftRound = lastParticipatedRound.value(left.id, -1);
+        const int rightRound = lastParticipatedRound.value(right.id, -1);
+        if (leftRound != rightRound)
+            return leftRound > rightRound;
+        const int leftPlacement = lastPlacement.value(left.id, std::numeric_limits<int>::max());
+        const int rightPlacement = lastPlacement.value(right.id, std::numeric_limits<int>::max());
+        if (leftPlacement != rightPlacement)
+            return leftPlacement < rightPlacement;
         return comparePlayerNames(left.name, right.name) < 0;
     });
     ordered.insert(ordered.end(), remaining.cbegin(), remaining.cend());
-    table_->setPlayers(ordered, definition_.rounds, eligibleIds, activeRoundIndex_, !tournamentFinished_);
+    table_->setPlayers(ordered, definition_.rounds, eligibleIds, eligibleIdsByRound,
+                       activeRoundIndex_, !tournamentFinished_);
     if (publicWindow_)
-        publicWindow_->standingsTable()->setPlayers(ordered, definition_.rounds, eligibleIds, activeRoundIndex_, false);
+        publicWindow_->standingsTable()->setPlayers(ordered, definition_.rounds, eligibleIds,
+                                                    eligibleIdsByRound, activeRoundIndex_, false);
 }
 
 std::vector<Player> Txapelketa::rankedEligiblePlayers(int round) const
@@ -907,7 +938,7 @@ void Txapelketa::updateRoundControls()
 {
     if (definition_.rounds.isEmpty())
         return;
-    currentRoundLabel_->setText(tr("Uneko txanda:"));
+    currentRoundLabel_->setText(tr("Uneko proba:"));
     const QSignalBlocker blocker(roundSelector_);
     roundSelector_->clear();
     for (qsizetype index = 0; index < definition_.rounds.size(); ++index)
@@ -915,21 +946,13 @@ void Txapelketa::updateRoundControls()
         roundSelector_->addItem(tr("%1. %2").arg(index + 1).arg(definition_.rounds.at(index).name),
                                 static_cast<int>(index));
     }
-    if (auto *model = qobject_cast<QStandardItemModel *>(roundSelector_->model()))
-    {
-        for (int index = 0; index < roundSelector_->count(); ++index)
-        {
-            if (QStandardItem *item = model->item(index))
-                item->setFlags(index <= activeRoundIndex_ + 1 ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
-        }
-    }
     roundSelector_->setCurrentIndex(activeRoundIndex_);
     if (tournamentFinished_)
         finishRoundButton_->setText(tr("Txapelketa amaituta"));
     else if (activeRoundIndex_ == definition_.rounds.size() - 1)
         finishRoundButton_->setText(tr("Txapelketa amaitu"));
     else
-        finishRoundButton_->setText(tr("Txanda itxi eta hurrengora pasa"));
+        finishRoundButton_->setText(tr("Proba itxi eta hurrengora pasa"));
     finishRoundButton_->setEnabled(!tournamentFinished_);
 }
 
@@ -939,17 +962,6 @@ void Txapelketa::selectRound(int roundIndex)
         return;
     if (roundIndex == activeRoundIndex_)
         return;
-    if (roundIndex == activeRoundIndex_ + 1)
-    {
-        finishCurrentRound();
-        updateRoundControls();
-        return;
-    }
-    if (roundIndex > activeRoundIndex_)
-    {
-        updateRoundControls();
-        return;
-    }
 
     activeRoundIndex_ = roundIndex;
     tournamentFinished_ = false;

@@ -247,6 +247,7 @@ void Taula::setPublicDisplay(bool publicDisplay)
 void Taula::setPlayers(const std::vector<Player> &players,
                        const QVector<RoundDefinition> &rounds,
                        const std::vector<int> &eligibleIds,
+                       const std::vector<std::vector<int>> &eligibleIdsByRound,
                        int activeRound,
                        bool allowEditing)
 {
@@ -270,23 +271,36 @@ void Taula::setPlayers(const std::vector<Player> &players,
         {
             const int field = criterion == ResultCriterion::Time ? 0 : 1;
             roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)] = nextColumn++;
-            headers.append(criterionName(criterion));
+            headers.append(QString());
             columnTones.insert(nextColumn - 1, roundTone);
         }
         headerGroups.push_back({firstColumn, nextColumn - 1, round.name, QColor(roundTone, roundTone, roundTone)});
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
             const int cutFirstColumn = nextColumn;
-            cutColumns_[static_cast<std::size_t>(roundIndex)][0] = nextColumn++;
-            headers.append(tr("Denbora metatua"));
-            columnTones.insert(nextColumn - 1, 236);
             cutColumns_[static_cast<std::size_t>(roundIndex)][1] = nextColumn++;
-            headers.append(tr("Akatsak metatuak"));
+            headers.append(QString());
             columnTones.insert(nextColumn - 1, 236);
-            headerGroups.push_back({cutFirstColumn, nextColumn - 1, QString(), QColor(236, 236, 236)});
+            cutColumns_[static_cast<std::size_t>(roundIndex)][0] = nextColumn++;
+            headers.append(QString());
+            columnTones.insert(nextColumn - 1, 236);
+            headerGroups.push_back({cutFirstColumn, nextColumn - 1, tr("Batera"), QColor(236, 236, 236)});
         }
     }
     setColumnCount(nextColumn);
+    for (qsizetype roundIndex = 0; roundIndex < rounds.size(); ++roundIndex)
+    {
+        for (int column : roundColumns_[static_cast<std::size_t>(roundIndex)])
+        {
+            if (column >= 0)
+                setColumnHidden(column, false);
+        }
+        for (int column : cutColumns_[static_cast<std::size_t>(roundIndex)])
+        {
+            if (column >= 0)
+                setColumnHidden(column, false);
+        }
+    }
     setHorizontalHeaderLabels(headers);
     model()->setHeaderData(PLAYER_ACTION_COLUMN, Qt::Horizontal, QColor(248, 248, 248), Qt::BackgroundRole);
     model()->setHeaderData(PLAYER_NAME_COLUMN, Qt::Horizontal, QColor(240, 240, 240), Qt::BackgroundRole);
@@ -320,10 +334,10 @@ void Taula::setPlayers(const std::vector<Player> &players,
             recordButton->setAccessibleName(tr("Denbora erregistratu: %1").arg(player.name));
             recordButton->setAccessibleDescription(activeRoundTracksTime
                                                        ? tr("Kronometroaren denbora jokalari honentzat erregistratzen du.")
-                                                       : tr("Txanda honetan ez da denborarik neurtzen."));
+                                                       : tr("Proba honetan ez da denborarik neurtzen."));
             recordButton->setToolTip(activeRoundTracksTime
                                          ? tr("Kronometroaren denbora erregistratu: %1").arg(player.name)
-                                         : tr("Txanda honetan ez da denborarik neurtzen."));
+                                         : tr("Proba honetan ez da denborarik neurtzen."));
             recordButton->setFocusPolicy(Qt::NoFocus);
             QPalette buttonPalette = recordButton->palette();
             const int buttonTone = row % 2 == 0 ? 248 : 234;
@@ -353,6 +367,10 @@ void Taula::setPlayers(const std::vector<Player> &players,
             const Result emptyResult;
             const Result &result = roundIndex < static_cast<qsizetype>(player.results.size())
                                        ? player.results[static_cast<std::size_t>(roundIndex)] : emptyResult;
+            const bool isRoundParticipant = roundIndex < static_cast<qsizetype>(eligibleIdsByRound.size()) &&
+                std::find(eligibleIdsByRound[static_cast<std::size_t>(roundIndex)].cbegin(),
+                          eligibleIdsByRound[static_cast<std::size_t>(roundIndex)].cend(), player.id) !=
+                    eligibleIdsByRound[static_cast<std::size_t>(roundIndex)].cend();
             for (int field = 0; field < 2; ++field)
             {
                 const int column = roundColumns_[static_cast<std::size_t>(roundIndex)][static_cast<std::size_t>(field)];
@@ -360,16 +378,17 @@ void Taula::setPlayers(const std::vector<Player> &players,
                     continue;
 
                 auto *resultItem = new QTableWidgetItem();
-                if (field == 0 && result.timeSeconds)
+                resultItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+                if (roundIndex <= activeRound && field == 0 && result.timeSeconds)
                 {
                     resultItem->setText(TimeFormat::format(*result.timeSeconds));
                     resultItem->setData(Qt::UserRole, *result.timeSeconds);
                 }
-                else if (field == 1 && result.errors)
+                else if (roundIndex <= activeRound && field == 1 && result.errors)
                 {
                     resultItem->setText(QString::number(*result.errors));
                 }
-                if (publicDisplay_)
+                if (publicDisplay_ || roundIndex > activeRound || !isRoundParticipant)
                     setReadOnly(resultItem);
                 setItem(row, column, resultItem);
             }
@@ -382,11 +401,26 @@ void Taula::setPlayers(const std::vector<Player> &players,
                 const int column = cutColumns_[static_cast<std::size_t>(cutRound)][static_cast<std::size_t>(field)];
                 if (column < 0)
                     continue;
+                auto *aggregateItem = new QTableWidgetItem();
+                aggregateItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+                QFont aggregateFont = aggregateItem->font();
+                aggregateFont.setBold(true);
+                aggregateItem->setFont(aggregateFont);
+                setReadOnly(aggregateItem);
                 const ResultCriterion criterion = field == 0 ? ResultCriterion::Time : ResultCriterion::Errors;
+                const bool activeRoundContributes = activeRound >= 0 && activeRound < rounds.size() &&
+                    std::find(rounds.at(activeRound).criteria.cbegin(), rounds.at(activeRound).criteria.cend(), criterion) !=
+                        rounds.at(activeRound).criteria.cend();
+                if (cutRound > activeRound && !activeRoundContributes)
+                {
+                    setItem(row, column, aggregateItem);
+                    continue;
+                }
+                const int lastIncludedRound = std::min(static_cast<int>(cutRound), activeRound);
                 qint64 total = 0;
                 bool complete = true;
                 bool hasValue = false;
-                for (int resultRound = 0; resultRound <= cutRound; ++resultRound)
+                for (int resultRound = 0; resultRound <= lastIncludedRound; ++resultRound)
                 {
                     const RoundDefinition &round = rounds.at(resultRound);
                     const bool isScored = std::find(round.criteria.cbegin(), round.criteria.cend(), criterion) != round.criteria.cend();
@@ -410,14 +444,12 @@ void Taula::setPlayers(const std::vector<Player> &players,
                     total += *value;
                     hasValue = true;
                 }
-                auto *aggregateItem = new QTableWidgetItem();
                 if (hasValue)
                 {
                     aggregateItem->setText(field == 0 ? TimeFormat::format(total) : QString::number(total));
                     if (!complete)
                         aggregateItem->setToolTip(tr("Emaitza batzuk falta dira; metatua sartutako balioekin kalkulatu da."));
                 }
-                setReadOnly(aggregateItem);
                 setItem(row, column, aggregateItem);
             }
         }
