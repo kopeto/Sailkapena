@@ -10,6 +10,7 @@
 #include "TournamentFormat.h"
 
 class QKeyEvent;
+class QPaintEvent;
 
 class Taula : public QTableWidget
 {
@@ -36,11 +37,13 @@ signals:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 private:
     bool publicDisplay_{false};
     std::vector<std::array<int, 2>> roundColumns_;
     std::vector<std::array<int, 2>> cutColumns_;
+    std::vector<int> separatorColumns_;
 };
 
 #endif // TAULA_H

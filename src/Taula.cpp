@@ -17,8 +17,11 @@
 #include <QPalette>
 #include <QPaintEvent>
 #include <QPainter>
+#include <QPen>
 #include <QPixmap>
 #include <QPushButton>
+#include <QResizeEvent>
+#include <QScrollBar>
 #include <QSignalBlocker>
 #include <QStyle>
 #include <QStyleOptionHeader>
@@ -38,6 +41,44 @@ struct HeaderGroup
     QColor background;
 };
 
+class HeaderSeparatorOverlay final : public QWidget
+{
+public:
+    explicit HeaderSeparatorOverlay(QHeaderView *header)
+        : QWidget(header->viewport()), header_(header)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+        setAttribute(Qt::WA_NoSystemBackground);
+        setAttribute(Qt::WA_TranslucentBackground);
+        setFocusPolicy(Qt::NoFocus);
+    }
+
+    void setColumns(std::vector<int> columns)
+    {
+        columns_ = std::move(columns);
+        update();
+        raise();
+    }
+
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        QPainter painter(this);
+        painter.setPen(QPen(QColor(105, 105, 105), 2));
+        for (int column : columns_)
+        {
+            if (header_->isSectionHidden(column))
+                continue;
+            const int x = header_->sectionViewportPosition(column) + header_->sectionSize(column) - 1;
+            painter.drawLine(x, 0, x, height());
+        }
+    }
+
+private:
+    QHeaderView *header_;
+    std::vector<int> columns_;
+};
+
 class GroupedHeaderView final : public QHeaderView
 {
 public:
@@ -46,15 +87,41 @@ public:
     {
         setMinimumHeight(56);
         setDefaultAlignment(Qt::AlignCenter);
+        separatorOverlay_ = new HeaderSeparatorOverlay(this);
+        separatorOverlay_->setGeometry(viewport()->rect());
+        separatorOverlay_->show();
+        connect(this, &QHeaderView::sectionResized, separatorOverlay_, [this]() { separatorOverlay_->update(); });
+        connect(this, &QHeaderView::sectionMoved, separatorOverlay_, [this]() { separatorOverlay_->update(); });
+        connect(this, &QHeaderView::geometriesChanged, separatorOverlay_, [this]() { updateSeparatorOverlay(); });
+        connect(horizontalScrollBar(), &QScrollBar::valueChanged, separatorOverlay_, [this]() { separatorOverlay_->update(); });
     }
 
     void setGroups(std::vector<HeaderGroup> groups)
     {
         groups_ = std::move(groups);
         viewport()->update();
+        separatorOverlay_->raise();
+    }
+
+    void setSeparatorColumns(std::vector<int> columns)
+    {
+        separatorOverlay_->setColumns(std::move(columns));
+        updateSeparatorOverlay();
     }
 
 protected:
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QHeaderView::resizeEvent(event);
+        updateSeparatorOverlay();
+    }
+
+    void scrollContentsBy(int dx, int dy) override
+    {
+        QHeaderView::scrollContentsBy(dx, dy);
+        separatorOverlay_->update();
+    }
+
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override
     {
         const bool grouped = std::any_of(groups_.cbegin(), groups_.cend(), [logicalIndex](const HeaderGroup &group) {
@@ -63,12 +130,14 @@ protected:
         if (!grouped || orientation() != Qt::Horizontal)
         {
             QHeaderView::paintSection(painter, rect, logicalIndex);
-            return;
+        }
+        else
+        {
+            QRect metricRect = rect;
+            metricRect.setTop(rect.top() + groupHeight_);
+            QHeaderView::paintSection(painter, metricRect, logicalIndex);
         }
 
-        QRect metricRect = rect;
-        metricRect.setTop(rect.top() + groupHeight_);
-        QHeaderView::paintSection(painter, metricRect, logicalIndex);
     }
 
     void paintEvent(QPaintEvent *event) override
@@ -103,8 +172,16 @@ protected:
     }
 
 private:
+    void updateSeparatorOverlay()
+    {
+        separatorOverlay_->setGeometry(viewport()->rect());
+        separatorOverlay_->raise();
+        separatorOverlay_->update();
+    }
+
     static constexpr int groupHeight_{28};
     std::vector<HeaderGroup> groups_;
+    HeaderSeparatorOverlay *separatorOverlay_{nullptr};
 };
 
 class RoundColumnDelegate final : public QStyledItemDelegate
@@ -257,6 +334,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
     roundColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     cutColumns_.assign(static_cast<std::size_t>(rounds.size()), std::array<int, 2>{{-1, -1}});
     std::vector<HeaderGroup> headerGroups;
+    std::vector<int> separatorColumns;
     QHash<int, int> columnTones;
 
     QStringList headers{QString(), tr("Jokalaria")};
@@ -275,6 +353,8 @@ void Taula::setPlayers(const std::vector<Player> &players,
             columnTones.insert(nextColumn - 1, roundTone);
         }
         headerGroups.push_back({firstColumn, nextColumn - 1, round.name, QColor(roundTone, roundTone, roundTone)});
+        if (roundIndex + 1 < rounds.size())
+            separatorColumns.push_back(nextColumn - 1);
         if (roundIndex + 1 < rounds.size() && round.advanceCount.has_value())
         {
             const int cutFirstColumn = nextColumn;
@@ -285,6 +365,7 @@ void Taula::setPlayers(const std::vector<Player> &players,
             headers.append(QString());
             columnTones.insert(nextColumn - 1, 236);
             headerGroups.push_back({cutFirstColumn, nextColumn - 1, tr("Batera"), QColor(236, 236, 236)});
+            separatorColumns.push_back(nextColumn - 1);
         }
     }
     setColumnCount(nextColumn);
@@ -312,7 +393,9 @@ void Taula::setPlayers(const std::vector<Player> &players,
     for (auto tone = columnTones.cbegin(); tone != columnTones.cend(); ++tone)
         model()->setHeaderData(tone.key(), Qt::Horizontal, QColor(tone.value(), tone.value(), tone.value()), Qt::BackgroundRole);
     static_cast<RoundColumnDelegate *>(itemDelegate())->setColumnTones(std::move(columnTones));
+    separatorColumns_ = separatorColumns;
     static_cast<GroupedHeaderView *>(horizontalHeader())->setGroups(headerGroups);
+    static_cast<GroupedHeaderView *>(horizontalHeader())->setSeparatorColumns(std::move(separatorColumns));
     setColumnWidth(PLAYER_ACTION_COLUMN, 44);
     setRowCount(static_cast<int>(players.size()));
 
@@ -495,4 +578,18 @@ void Taula::keyPressEvent(QKeyEvent *event)
     }
 
     QTableWidget::keyPressEvent(event);
+}
+
+void Taula::paintEvent(QPaintEvent *event)
+{
+    QTableWidget::paintEvent(event);
+    QPainter painter(viewport());
+    painter.setPen(QPen(QColor(105, 105, 105), 2));
+    for (int column : separatorColumns_)
+    {
+        if (isColumnHidden(column))
+            continue;
+        const int x = columnViewportPosition(column) + columnWidth(column) - 1;
+        painter.drawLine(x, 0, x, viewport()->height());
+    }
 }
