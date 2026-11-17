@@ -197,7 +197,7 @@ std::optional<qint64> accumulatedResult(const Player &player,
 bool Txapelketa::saveToFile()
 {
     const QString filePath = QFileDialog::getSaveFileName(
-        this, tr("Lehiaketa JSON fitxategi gisa gorde"), QString(), tr("JSON fitxategiak (*.json)"));
+        this, tr("Txapelketa JSON fitxategi gisa gorde"), QString(), tr("JSON fitxategiak (*.json)"));
     if (filePath.isEmpty())
         return false;
     if (saveToFile_(filePath))
@@ -304,7 +304,7 @@ bool Txapelketa::exportToCsv()
 bool Txapelketa::loadFromFile()
 {
     const QString filePath = QFileDialog::getOpenFileName(
-        this, tr("Lehiaketa ireki"), QString(),
+        this, tr("Txapelketa ireki"), QString(),
         tr("JSON saioak eta aurreko CSV saioak (*.json *.csv *.tmp);;Fitxategi guztiak (*)"));
     if (filePath.isEmpty())
         return false;

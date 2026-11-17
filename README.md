@@ -48,8 +48,8 @@ Jokalarientzako kopuru zehatza ezartzen duen ebaketa bakoitzaren ondoren, taulak
 
 Taulak proba bakoitzean konfiguratutako irizpideei dagozkien emaitza-zutabeak erakusten ditu; denbora hautatuta ez badago, ez da denbora-zutaberik agertzen. Denborak MM:SS formatuan erakusten eta editatzen dira. Edozein probatako eta jokalaritako emaitza-gelaxkak edita daitezke; sailkapena automatikoki eguneratzen da. Uneko proba goiko hautatzailean aukera daiteke. Aurreko proba hautatzean, ondorengo probetako denbora eta akatsak gordetzen dira. Aurrera berriro egiten denean, hurrengo probaren sailkapena berriro kalkulatzen da, gordetako emaitzak mantenduta. Sailkapenean proba horretarako formatuan hautatutako irizpideak bakarrik hartzen dira kontuan.
 
-## Emaitzak gorde eta esportatzea
+## Txapelketa gorde eta esportatzea
 
-**Emaitzak gorde/ireki** aukerek JSON saio-fitxategia erabiltzen dute. Fitxategiak formatua, emaitzak, uneko proba eta izoztutako sailkapenak gordetzen ditu. CSV esportazioak taula irakurtzeko balio du, baina ez du formatua edo aurrerapen-egoera gordetzen. Aurreko 9 eta 10 zutabeko CSV saioak ireki daitezke.
+**Txapelketa gorde/ireki** aukerek JSON saio-fitxategia erabiltzen dute. Fitxategiak formatua, emaitzak, uneko proba eta izoztutako sailkapenak gordetzen ditu. CSV esportazioak taula irakurtzeko balio du, baina ez du formatua edo aurrerapen-egoera gordetzen. Aurreko 9 eta 10 zutabeko CSV saioak ireki daitezke.
 
 Aplikazioak azken saioaren JSON kopia automatikoa gordetzen du erabiltzailearen aplikazio-datuen karpetan, eta hurrengo abiaraztean automatikoki kargatzen du. Aurreko CSV kopia badago, hura ere berreskura daiteke.

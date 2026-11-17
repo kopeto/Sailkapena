@@ -12,11 +12,11 @@ MainWindow::MainWindow()
     QMenu *playersMenu = menuBar()->addMenu(tr("&Jokalariak"));
     QMenu *helpMenu = menuBar()->addMenu(tr("&Laguntza"));
 
-    QAction *saveAction = new QAction(tr("&Emaitzak gorde"), this);
+    QAction *saveAction = new QAction(tr("&Txapelketa gorde"), this);
     connect(saveAction, &QAction::triggered, this, &MainWindow::taulaGorde);
     QAction *exportAction = new QAction(tr("CSVra &esportatu"), this);
     connect(exportAction, &QAction::triggered, this, &MainWindow::taulaCsvraEsportatu);
-    QAction *openAction = new QAction(tr("Emaitzak &ireki"), this);
+    QAction *openAction = new QAction(tr("Txapelketa &ireki"), this);
     connect(openAction, &QAction::triggered, this, &MainWindow::taulaIreki);
     QAction *formatAction = new QAction(tr("Txapelketaren formatua editatu"), this);
     connect(formatAction, &QAction::triggered, txapelketa, &Txapelketa::editTournamentFormat);
