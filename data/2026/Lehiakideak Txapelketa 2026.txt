@@ -1,0 +1,71 @@
+Agirresarobe Arzallus, Iñaki 
+Agirresarobe Igiñiz, Mikel 
+Altuna Ibabe, Javier
+Altzelai Alberdi, Itziar
+Altzelai Alberdi, Nerea
+Artola Ormazabal, Axier
+Azkue Ibarbia, Xabier
+Azkue Iza, Ametz
+Badiola Arnedo, Alfredo
+Dorronsoro Iraeta, Xabier
+Elosegi Ortiz de Zarate, Beñat
+Etxabeguren Agirre, Iosune
+Etxabeguren Agirre, Nerea
+Etxeberria Oñatibia, Markel
+Fernandez de Martikorena Rodriguez, Aitor
+Fernandez Lasa, Antton
+Genua Alzuri, Idoia
+Genua Alzuri, Olga
+Gutierrez San Martin, Iñigo
+Ikardo Enparan, Urko
+Intxauspe, Beñat
+Inza, Itziar
+Iraeta Zubeldia, Arantxa
+Iza, Mayi
+Lizarribar Altuna, Luis Angel 
+Loidi Garitano, Ane
+Maya Urroz, Ainara
+Muniain Caballero, Unai
+Rezola, Ainhoa
+Soto Cotorro, Irune
+Toledo Irazu, Egoitz
+Zaldua Moreno, Ibon
+Zulaika Arakistain, Oier 
+
+
+
+
+1. Agirresarobe Arzallus, Iñaki 
+2. Agirresarobe Igiñiz, Mikel 
+3. Altuna Ibabe, Javier
+4. Altzelai Alberdi, Itziar
+5. Altzelai Alberdi, Nerea
+6. Artola Ormazabal, Axier
+7. Azkue Ibarbia, Xabier
+8. Azkue Iza, Ametz
+9. Badiola Arnedo, Alfredo
+10. Dorronsoro Iraeta, Xabier
+11. Elosegi Ortiz de Zarate, Beñat
+12. Etxabeguren Agirre, Iosune
+13. Etxabeguren Agirre, Nerea
+14. Etxeberria Oñatibia, Markel
+15. Fernandez de Martikorena Rodriguez, Aitor
+16. Fernandez Lasa, Antton
+17. Genua Alzuri, Idoia
+18. Genua Alzuri, Olga
+19. Gutierrez San Martin, Iñigo
+20. Ikardo Enparan, Urko
+21. Intxauspe, Beñat
+22. Inza, Itziar
+23. Iraeta Zubeldia, Arantxa
+24. Iza, Mayi
+25. Lizarribar Altuna, Luis Angel 
+26. Loidi Garitano, Ane
+27. Maya Urroz, Ainara
+28. Muniain Caballero, Unai
+29. Rezola, Ainhoa
+30. Soto Cotorro, Irune
+31. Toledo Irazu, Egoitz
+32. Zaldua Moreno, Ibon
+33. Zulaika Arakistain, Oier 
+
