@@ -242,7 +242,7 @@ Taula::Taula(QWidget *parent)
     setHorizontalHeader(new GroupedHeaderView(this));
     setItemDelegate(new RoundColumnDelegate(this));
     setSelectionBehavior(QAbstractItemView::SelectRows);
-    setSelectionMode(QAbstractItemView::SingleSelection);
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setAlternatingRowColors(true);
     QPalette tablePalette = palette();
@@ -266,7 +266,10 @@ Taula::Taula(QWidget *parent)
         const QString playerName = nameItem->text();
         QMenu menu(this);
         QAction *editNameAction = menu.addAction(tr("Izena editatu"));
-        QAction *removePlayerAction = menu.addAction(tr("Jokalaria ezabatu"));
+        const QList<int> selectedIds = selectedPlayerIds();
+        const bool bulk = selectedIds.size() > 1 && selectedIds.contains(playerId);
+        QAction *removePlayerAction = menu.addAction(
+            bulk ? tr("Hautatutako jokalariak ezabatu (%1)").arg(selectedIds.size()) : tr("Jokalaria ezabatu"));
         menu.addSeparator();
         QAction *copyNameAction = menu.addAction(tr("Izena kopiatu"));
         QAction *chosenAction = menu.exec(viewport()->mapToGlobal(position));
@@ -274,15 +277,7 @@ Taula::Taula(QWidget *parent)
         if (chosenAction == editNameAction)
             emit editPlayerNameRequested(playerId);
         else if (chosenAction == removePlayerAction)
-        {
-            QMessageBox message(QMessageBox::Question, tr("Jokalaria ezabatu"),
-                                tr("%1 ezabatu nahi duzu?").arg(playerName), QMessageBox::NoButton, this);
-            QAbstractButton *yesButton = message.addButton(tr("Bai"), QMessageBox::AcceptRole);
-            message.addButton(tr("Ez"), QMessageBox::RejectRole);
-            message.exec();
-            if (message.clickedButton() == yesButton)
-                emit removePlayerRequested(playerId);
-        }
+            confirmAndRemove(bulk ? selectedIds : QList<int>{playerId});
         else if (chosenAction == copyNameAction)
             QApplication::clipboard()->setText(playerName);
     });
@@ -316,7 +311,7 @@ void Taula::setPublicDisplay(bool publicDisplay)
         setEditTriggers(QAbstractItemView::NoEditTriggers);
     else
         setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed);
-    setSelectionMode(publicDisplay_ ? QAbstractItemView::NoSelection : QAbstractItemView::SingleSelection);
+    setSelectionMode(publicDisplay_ ? QAbstractItemView::NoSelection : QAbstractItemView::ExtendedSelection);
     setFocusPolicy(publicDisplay_ ? Qt::NoFocus : Qt::StrongFocus);
     setContextMenuPolicy(publicDisplay_ ? Qt::NoContextMenu : Qt::CustomContextMenu);
 }
@@ -558,22 +553,50 @@ void Taula::setPlayers(const std::vector<Player> &players,
     setColumnHidden(PLAYER_ACTION_COLUMN, publicDisplay_);
 }
 
+QList<int> Taula::selectedPlayerIds() const
+{
+    QList<int> ids;
+    const QModelIndexList rows = selectionModel()->selectedRows();
+    for (const QModelIndex &index : rows)
+    {
+        const QTableWidgetItem *nameItem = item(index.row(), PLAYER_NAME_COLUMN);
+        if (nameItem)
+            ids.append(nameItem->data(Qt::UserRole).toInt());
+    }
+    return ids;
+}
+
+void Taula::confirmAndRemove(const QList<int> &playerIds)
+{
+    if (playerIds.isEmpty())
+        return;
+    QString question;
+    if (playerIds.size() == 1)
+    {
+        QString name;
+        for (int row = 0; row < rowCount(); ++row)
+        {
+            const QTableWidgetItem *nameItem = item(row, PLAYER_NAME_COLUMN);
+            if (nameItem && nameItem->data(Qt::UserRole).toInt() == playerIds.first())
+                name = nameItem->text();
+        }
+        question = tr("%1 ezabatu nahi duzu?").arg(name);
+    }
+    else
+        question = tr("%1 jokalari ezabatu nahi dituzu?").arg(playerIds.size());
+    QMessageBox message(QMessageBox::Question, tr("Jokalaria ezabatu"), question, QMessageBox::NoButton, this);
+    QAbstractButton *yesButton = message.addButton(tr("Bai"), QMessageBox::AcceptRole);
+    message.addButton(tr("Ez"), QMessageBox::RejectRole);
+    message.exec();
+    if (message.clickedButton() == yesButton)
+        emit removePlayersRequested(playerIds);
+}
+
 void Taula::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Delete)
     {
-        const int row = currentRow();
-        QTableWidgetItem *nameItem = row >= 0 ? item(row, PLAYER_NAME_COLUMN) : nullptr;
-        if (!nameItem)
-            return;
-
-        const QString question = tr("%1 ezabatu nahi duzu?").arg(nameItem->text());
-        QMessageBox message(QMessageBox::Question, tr("Jokalaria ezabatu"), question, QMessageBox::NoButton, this);
-        QAbstractButton *yesButton = message.addButton(tr("Bai"), QMessageBox::AcceptRole);
-        message.addButton(tr("Ez"), QMessageBox::RejectRole);
-        message.exec();
-        if (message.clickedButton() == yesButton)
-            emit removePlayerRequested(nameItem->data(Qt::UserRole).toInt());
+        confirmAndRemove(selectedPlayerIds());
         return;
     }
 

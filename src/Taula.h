@@ -1,6 +1,7 @@
 #ifndef TAULA_H
 #define TAULA_H
 
+#include <QList>
 #include <QTableWidget>
 
 #include <array>
@@ -31,7 +32,7 @@ public:
 
 signals:
     void recordTimeRequested(int playerId);
-    void removePlayerRequested(int playerId);
+    void removePlayersRequested(const QList<int> &playerIds);
     void editPlayerNameRequested(int playerId);
     void resultEdited(int playerId, int round, int field, const QString &value);
 
@@ -40,6 +41,8 @@ protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
+    QList<int> selectedPlayerIds() const;
+    void confirmAndRemove(const QList<int> &playerIds);
     bool publicDisplay_{false};
     std::vector<std::array<int, 2>> roundColumns_;
     std::vector<std::array<int, 2>> cutColumns_;

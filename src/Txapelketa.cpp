@@ -108,7 +108,7 @@ Txapelketa::Txapelketa(QWidget *parent)
     connect(timer_, &CountdownWidget::publicDisplayToggleRequested, this, &Txapelketa::togglePublicWindow);
     connect(table_, &Taula::recordTimeRequested, this, &Txapelketa::recordTime);
     connect(table_, &Taula::editPlayerNameRequested, this, &Txapelketa::editPlayerName);
-    connect(table_, &Taula::removePlayerRequested, this, &Txapelketa::removePlayer);
+    connect(table_, &Taula::removePlayersRequested, this, &Txapelketa::removePlayers);
     connect(table_, &Taula::resultEdited, this, &Txapelketa::updateResult);
 
     timer_->configureRound(definition_.rounds.first().durationMinutes, definition_.rounds.first().name);
@@ -278,27 +278,29 @@ void Txapelketa::recordTime(int playerId)
     saveCheckpoint();
 }
 
-void Txapelketa::removePlayer(int playerId)
+void Txapelketa::removePlayers(const QList<int> &playerIds)
 {
-    const auto found = std::find_if(players_.begin(), players_.end(), [playerId](const Player &player) {
-        return player.id == playerId;
-    });
-    if (found == players_.end())
-        return;
+    const auto isRemoved = [&playerIds](int id) { return playerIds.contains(id); };
     if (!tournamentFinished_ && activeRoundIndex_ > 0)
     {
         const std::vector<int> eligibleIds = eligiblePlayerIds(activeRoundIndex_);
-        const bool isActivePlayer = std::find(eligibleIds.cbegin(), eligibleIds.cend(), playerId) != eligibleIds.cend();
-        if (isActivePlayer && eligibleIds.size() == 1)
+        const bool allRemoved = !eligibleIds.empty() &&
+                                std::all_of(eligibleIds.cbegin(), eligibleIds.cend(), isRemoved);
+        if (allRemoved)
         {
             showBasqueMessage(this, QMessageBox::Information, tr("Jokalaria ezabatu"),
-                              tr("Ezin da probako azken jokalaria ezabatu."));
+                              tr("Ezin dira probako azken jokalariak ezabatu."));
             return;
         }
     }
-    players_.erase(found);
+    const auto oldSize = players_.size();
+    players_.erase(std::remove_if(players_.begin(), players_.end(),
+                                  [&isRemoved](const Player &player) { return isRemoved(player.id); }),
+                   players_.end());
+    if (players_.size() == oldSize)
+        return;
     for (std::vector<int> &qualifiedIds : qualifiedIdsByRound_)
-        qualifiedIds.erase(std::remove(qualifiedIds.begin(), qualifiedIds.end(), playerId), qualifiedIds.end());
+        qualifiedIds.erase(std::remove_if(qualifiedIds.begin(), qualifiedIds.end(), isRemoved), qualifiedIds.end());
     refreshTable();
     saveCheckpoint();
 }
