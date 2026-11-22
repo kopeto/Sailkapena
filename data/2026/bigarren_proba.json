@@ -1,0 +1,775 @@
+{
+    "activeRoundIndex": 1,
+    "definition": {
+        "formatId": "sailkapena-default",
+        "name": "Txapelketa estandarra",
+        "rounds": [
+            {
+                "advanceCount": null,
+                "criteria": [
+                    "errors"
+                ],
+                "durationMinutes": 30,
+                "id": "qualifier-1",
+                "name": "Hasierako Proba",
+                "rankingScope": "cumulative",
+                "tiePolicy": "includeTies"
+            },
+            {
+                "advanceCount": null,
+                "criteria": [
+                    "errors",
+                    "time"
+                ],
+                "durationMinutes": 30,
+                "id": "8699a6ce-c338-4d29-b011-70863cbf706c",
+                "name": "Bigarren Proba",
+                "rankingScope": "cumulative",
+                "tiePolicy": "includeTies"
+            },
+            {
+                "advanceCount": 3,
+                "criteria": [
+                    "errors",
+                    "time"
+                ],
+                "durationMinutes": 45,
+                "id": "e66bc031-ea97-491e-bb03-ad375a7836e7",
+                "name": "Finalaurrekoa",
+                "rankingScope": "cumulative",
+                "tiePolicy": "manual"
+            },
+            {
+                "criteria": [
+                    "errors",
+                    "time"
+                ],
+                "durationMinutes": 60,
+                "id": "54b94934-9369-4ba1-be92-0b2b9ce341d6",
+                "name": "Finala",
+                "rankingScope": "round",
+                "tiePolicy": "includeTies"
+            }
+        ],
+        "schemaVersion": 1
+    },
+    "kind": "tournamentSession",
+    "players": [
+        {
+            "name": "Agirresarobe Arzallus, Iñaki",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 10,
+                    "timeSeconds": 1800
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Agirresarobe Igiñiz, Mikel",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 977
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Altuna Ibabe, Javier",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 682
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Altzelai Alberdi, Itziar",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 566
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Altzelai Alberdi, Nerea",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 745
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Artola Ormazabal, Axier",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 564
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Azkue Ibarbia, Xabier",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 493
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Azkue Iza, Ametz",
+            "results": [
+                {
+                    "errors": 11,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 11,
+                    "timeSeconds": 1710
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Badiola Arnedo, Alfredo",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 530
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Dorronsoro Iraeta, Xabier",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 1,
+                    "timeSeconds": 767
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Elosegi Ortiz de Zarate, Beñat",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 848
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Etxabeguren Agirre, Iosune",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 6,
+                    "timeSeconds": 1040
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Etxabeguren Agirre, Nerea",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 4,
+                    "timeSeconds": 869
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Etxeberria Oñatibia, Markel",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 505
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Fernandez de Martikorena Rodriguez, Aitor",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 1,
+                    "timeSeconds": 405
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Fernandez Lasa, Antton",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 434
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Genua Alzuri, Idoia",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 9,
+                    "timeSeconds": 1800
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Genua Alzuri, Olga",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 8,
+                    "timeSeconds": 592
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Gutierrez San Martin, Iñigo",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 1090
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Ikardo Enparan, Urko",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 6,
+                    "timeSeconds": 886
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Intxauspe, Beñat",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 753
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Inza, Itziar",
+            "results": [
+                {
+                    "errors": 11,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 11,
+                    "timeSeconds": 1800
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Iraeta Zubeldia, Arantxa",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 3,
+                    "timeSeconds": 1800
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Iza, Mayi",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 403
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Lizarribar Altuna, Luis Angel",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 8,
+                    "timeSeconds": 809
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Loidi Garitano, Ane",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 392
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Maya Urroz, Ainara",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 1315
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Muniain Caballero, Unai",
+            "results": [
+                {
+                    "errors": 1,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 547
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Rezola, Ainhoa",
+            "results": [
+                {
+                    "errors": 11,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 1476
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Toledo Irazu, Egoitz",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 588
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Zaldua Moreno, Ibon",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 516
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        },
+        {
+            "name": "Zulaika Arakistain, Oier",
+            "results": [
+                {
+                    "errors": 0,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": 0,
+                    "timeSeconds": 805
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                },
+                {
+                    "errors": null,
+                    "timeSeconds": null
+                }
+            ]
+        }
+    ],
+    "qualifiedPlayersByRound": [
+        [
+        ],
+        [
+            "Agirresarobe Arzallus, Iñaki",
+            "Agirresarobe Igiñiz, Mikel",
+            "Altuna Ibabe, Javier",
+            "Altzelai Alberdi, Itziar",
+            "Altzelai Alberdi, Nerea",
+            "Artola Ormazabal, Axier",
+            "Azkue Ibarbia, Xabier",
+            "Badiola Arnedo, Alfredo",
+            "Dorronsoro Iraeta, Xabier",
+            "Elosegi Ortiz de Zarate, Beñat",
+            "Etxabeguren Agirre, Iosune",
+            "Etxabeguren Agirre, Nerea",
+            "Etxeberria Oñatibia, Markel",
+            "Fernandez de Martikorena Rodriguez, Aitor",
+            "Fernandez Lasa, Antton",
+            "Genua Alzuri, Idoia",
+            "Genua Alzuri, Olga",
+            "Gutierrez San Martin, Iñigo",
+            "Ikardo Enparan, Urko",
+            "Intxauspe, Beñat",
+            "Iraeta Zubeldia, Arantxa",
+            "Iza, Mayi",
+            "Lizarribar Altuna, Luis Angel",
+            "Loidi Garitano, Ane",
+            "Maya Urroz, Ainara",
+            "Toledo Irazu, Egoitz",
+            "Zaldua Moreno, Ibon",
+            "Zulaika Arakistain, Oier",
+            "Muniain Caballero, Unai",
+            "Azkue Iza, Ametz",
+            "Inza, Itziar",
+            "Rezola, Ainhoa"
+        ],
+        [
+        ],
+        [
+        ]
+    ],
+    "schemaVersion": 1,
+    "tournamentFinished": false
+}
